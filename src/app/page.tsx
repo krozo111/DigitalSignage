@@ -97,59 +97,52 @@ export default function Home() {
     }
   };
 
-  // 2. Listen for admin commands via Firebase realtime
+  // 2. Optimized Update Checker (Replaza onSnapshot para evitar bucles)
   useEffect(() => {
     if (!screenId) return;
 
-    const screenRef = doc(db, "screens", screenId);
-    
-    const unsubscribe = onSnapshot(screenRef, 
-      (docSnap) => {
+    const checkForUpdates = async () => {
+      // a) Debounce/Cooling: No pedir más de una vez cada 30 segundos en arranques/refrescos rápidos
+      const lastFetch = Number(localStorage.getItem("dsf_last_fetch_time") || 0);
+      const now = Date.now();
+      if (now - lastFetch < 30_000 && playlistId) {
+        console.log("Cooling period active, skipping Firestore read.");
+        return;
+      }
+
+      try {
         setNetworkError(false);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
+        const screenRef = doc(db, "screens", screenId);
+        const screenSnap = await getDoc(screenRef);
+
+        if (screenSnap.exists()) {
+          const data = screenSnap.data();
           setPairingCode(data.pairingCode || null);
-          
-          if (data.playlistId !== playlistId) {
+          localStorage.setItem("dsf_last_fetch_time", Date.now().toString());
+
+          // Solo procedemos a leer la playlist si el ID cambió
+          if (data.playlistId && data.playlistId !== playlistId) {
+            await fetchPlaylistDetails(data.playlistId);
             setPlaylistId(data.playlistId);
           }
         }
-      },
-      (error) => {
-        console.error("Listener Error (Probably offline)", error);
+      } catch (error) {
+        console.error("Error en pooling de actualización:", error);
         setNetworkError(true);
       }
-    );
-
-    return () => unsubscribe();
-  }, [screenId, playlistId]);
-
-  // 2b. Heartbeat: update lastSeen every 60s (NOT inside onSnapshot to avoid write loops)
-  useEffect(() => {
-    if (!screenId) return;
-
-    const sendHeartbeat = () => {
-      const screenRef = doc(db, "screens", screenId);
-      setDoc(screenRef, { lastSeen: new Date(), status: "online" }, { merge: true })
-        .catch(() => {});
     };
 
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 60_000);
-    return () => clearInterval(interval);
-  }, [screenId]);
+    const fetchPlaylistDetails = async (id: string) => {
+      setLoadingMsg("Updating content...");
+      const playlistRef = doc(db, "playlists", id);
+      const plSnap = await getDoc(playlistRef);
 
-  // 3. Resolve playlist items when playlistId changes
-  useEffect(() => {
-    if (!playlistId) return;
-
-    setLoadingMsg("Downloading schedule...");
-    const playlistRef = doc(db, "playlists", playlistId);
-    
-    const unsubPlaylist = onSnapshot(playlistRef, async (plSnap) => {
       if (plSnap.exists()) {
-        const plItems = plSnap.data().items || [];
+        const plData = plSnap.data();
+        const plItems = plData.items || [];
         
+        // Optimización: Si tenemos caché y el lastUpdated (si existiera) no cambió, saltamos
+        // Por ahora resolvemos todo para asegurar consistencia
         const resolvedItems: PlaybackItem[] = [];
         for (const item of plItems) {
           try {
@@ -170,19 +163,36 @@ export default function Home() {
         
         resolvedItems.sort((a: any, b: any) => a.order - b.order);
         setMediaItems(resolvedItems);
-
-        // Persist for offline use
-        try {
-          localStorage.setItem("dsf_offline_playlist", JSON.stringify(resolvedItems));
-        } catch {}
+        localStorage.setItem("dsf_offline_playlist", JSON.stringify(resolvedItems));
       }
-    }, (err) => {
-      console.error("Playlist listener error", err);
-      fallbackToOfflineCache();
-    });
+    };
 
-    return () => unsubPlaylist();
-  }, [playlistId]);
+    // Consultamos al montar
+    checkForUpdates();
+
+    // Consultamos periódicamente (cada 5 minutos para ahorrar cuota)
+    const interval = setInterval(checkForUpdates, 300_000); 
+    return () => clearInterval(interval);
+  }, [screenId, playlistId]);
+
+  // 2b. Heartbeat: update lastSeen every 60s
+  useEffect(() => {
+    if (!screenId) return;
+
+    const sendHeartbeat = () => {
+      const screenRef = doc(db, "screens", screenId);
+      setDoc(screenRef, { lastSeen: new Date(), status: "online" }, { merge: true })
+        .catch(() => {});
+    };
+
+    // Debounce inicial para no pisar el boot
+    const timer = setTimeout(sendHeartbeat, 5000);
+    const interval = setInterval(sendHeartbeat, 60_000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
+  }, [screenId]);
 
   const fallbackToOfflineCache = () => {
     const cached = localStorage.getItem("dsf_offline_playlist");
