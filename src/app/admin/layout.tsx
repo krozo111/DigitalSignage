@@ -14,7 +14,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const navItems = [
     { label: "Dashboard", href: "/admin", icon: "📊" },
-    { label: "Media Library", href: "/admin/media", icon: "🖼️" },
+    { label: "Media", href: "/admin/media", icon: "🖼️" },
     { label: "Playlists", href: "/admin/playlists", icon: "📋" },
     { label: "Screens", href: "/admin/screens", icon: "🖥️" },
   ];
@@ -37,7 +37,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return (
       <div className="flex h-screen w-full items-center justify-center bg-slate-900 text-white">
         <span className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mr-4"></span>
-        <span className="text-xl font-medium">Verificando acceso...</span>
+        <span className="text-xl font-medium">Verifying access...</span>
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             onClick={handleLogout}
             className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-3"
           >
-            <span>🚪</span> Cerrar Sesión
+            <span>🚪</span> Logout
           </button>
         </div>
       </aside>
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           onClick={handleLogout}
           className="w-full text-center py-3 text-red-400 font-medium active:bg-red-500/10 rounded-lg transition-colors"
         >
-           Cerrar Sesión
+           Logout
         </button>
       </div>
     </div>

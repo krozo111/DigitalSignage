@@ -44,8 +44,9 @@ export default function MediaLibraryPage() {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+      alert("File uploaded successfully");
     } catch (error: any) {
-      alert(error.message || "Error al subir archivo");
+      alert(error.message || "Upload failed");
     } finally {
       setUploading(false);
       setProgress(0);
@@ -53,14 +54,14 @@ export default function MediaLibraryPage() {
   };
 
   const handleDelete = async (id: string, storagePath: string) => {
-    if (!confirm("¿Seguro que deseas eliminar este archivo? Esto no se puede deshacer.")) return;
+    if (!confirm("Are you sure you want to delete this file? This cannot be undone.")) return;
     
     try {
       await deleteMedia(id, storagePath);
       // Remove from UI without fetching everything again
       setMediaList(prev => prev.filter(item => item.id !== id));
     } catch (error: any) {
-      alert("Error eliminando: " + error.message);
+      alert("Error deleting: " + error.message);
     }
   };
 
@@ -69,7 +70,7 @@ export default function MediaLibraryPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Media Library</h2>
-          <p className="text-slate-400 mt-1">Gestión de imágenes y videos (Máx. 50MB por archivo).</p>
+          <p className="text-slate-400 mt-1">Image and video management (Max 50MB per file).</p>
         </div>
 
         <div className="w-full md:w-auto">
@@ -88,10 +89,10 @@ export default function MediaLibraryPage() {
             {uploading ? (
               <span className="flex items-center gap-2">
                 <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Subiendo...
+                Uploading...
               </span>
             ) : (
-               "Subir Archivo 📤"
+               "Upload File 📤"
             )}
           </button>
         </div>
@@ -107,11 +108,11 @@ export default function MediaLibraryPage() {
       )}
 
       {loading ? (
-        <div className="text-center py-20 text-slate-400">Cargando medios...</div>
+        <div className="text-center py-20 text-slate-400">Loading media...</div>
       ) : mediaList.length === 0 ? (
         <div className="text-center py-20 border-2 border-dashed border-slate-700 rounded-xl text-slate-400">
-          <p className="mb-2">La biblioteca está vacía.</p>
-          <p className="text-sm">Sube fotos o videos para empezar a crear playlists.</p>
+          <p className="mb-2">The library is empty.</p>
+          <p className="text-sm">Upload photos or videos to start creating playlists.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
@@ -133,7 +134,7 @@ export default function MediaLibraryPage() {
                    <button 
                       onClick={() => handleDelete(item.id, item.storagePath)}
                       className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
-                      title="Eliminar archivo"
+                      title="Delete file"
                    >
                      🗑️
                    </button>

@@ -1,0 +1,47 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================================
+    // SCREENS
+    // - Anyone can create (the player page registers new TVs)
+    // - Anyone can read (the player needs to listen to its own doc)
+    // - Unauthenticated users can ONLY update `lastSeen` and `status`
+    // - Only admin (authenticated) can update other fields or delete
+    // ============================================================
+    match /screens/{screenId} {
+      allow read: if true;
+      
+      // Solo el admin (autenticado) puede borrar registros
+      allow delete: if request.auth != null;
+
+      // El player puede registrarse (create) si no está autenticado, 
+      // pero solo con el nombre por defecto y campos iniciales.
+      allow create: if request.auth == null 
+        && request.resource.data.name == "New TV"
+        && request.resource.data.status == "online";
+      
+      // Admin puede actualizar todo. 
+      // El player NO autenticado SOLO puede actualizar el heartbeat (lastSeen y status).
+      allow update: if request.auth != null 
+        || (request.auth == null 
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'status']));
+    }
+
+    // ============================================================
+    // PLAYLISTS — read by everyone (player), write by admin only
+    // ============================================================
+    match /playlists/{playlistId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+
+    // ============================================================
+    // MEDIA — read by everyone (player), write by admin only
+    // ============================================================
+    match /media/{mediaId} {
+      allow read: if true;
+      allow create, update, delete: if request.auth != null;
+    }
+  }
+}

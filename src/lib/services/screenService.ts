@@ -1,25 +1,24 @@
 import { db, auth } from "../firebase.config";
 import { 
-  collection, updateDoc, doc, getDocs, query, where, serverTimestamp, orderBy 
+  collection, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, serverTimestamp, Timestamp 
 } from "firebase/firestore";
 
 // Helper to strictly require Auth
 const assertAuth = () => {
-  if (!auth.currentUser) throw new Error("Acceso denegado: Se requiere autenticación.");
+  if (!auth.currentUser) throw new Error("Access denied: Authentication required.");
 };
 
 export interface Screen {
   id: string;
   pairingCode: string | null;
   name: string;
-  playlistId: string | null; // Null si no tiene lista asignada
+  playlistId: string | null;
   lastSeen: any;
   status: "online" | "offline";
 }
 
 /**
- * Busca el dispositivo usando el `pairingCode` y, si lo encuentra, 
- * lo "reclama" asignándole el nombre y la Playlist, de lo contrario lanza un error.
+ * Claims a screen using its pairingCode, assigning it a name and optional playlist.
  */
 export const claimScreen = async (pairingCode: string, name: string, playlistId: string): Promise<string> => {
   assertAuth();
@@ -29,16 +28,15 @@ export const claimScreen = async (pairingCode: string, name: string, playlistId:
   const querySnapshot = await getDocs(q);
 
   if (querySnapshot.empty) {
-    throw new Error("El código de emparejamiento es inválido, caducó o la pantalla ya no está disponible.");
+    throw new Error("Invalid pairing code. It may have expired or the screen is no longer available.");
   }
 
   const screenDoc = querySnapshot.docs[0];
 
-  // Reclama la pantalla
   await updateDoc(screenDoc.ref, {
     name,
     playlistId,
-    pairingCode: null, // Borramos el código para evitar múltiples "claims"
+    pairingCode: null,
     updatedAt: serverTimestamp(),
   });
 
@@ -46,13 +44,12 @@ export const claimScreen = async (pairingCode: string, name: string, playlistId:
 };
 
 /**
- * Obtiene todas las pantallas sincronizadas
+ * Gets all screens (both paired and unpaired).
  */
 export const getAllScreens = async (): Promise<Screen[]> => {
   assertAuth();
   
   const screensRef = collection(db, "screens");
-  // Ordenar o traer todo (asumimos pocas TVs por ahora)
   const q = query(screensRef);
   const querySnapshot = await getDocs(q);
 
@@ -63,7 +60,7 @@ export const getAllScreens = async (): Promise<Screen[]> => {
 };
 
 /**
- * Permite cambiar el nombre o el playlist asignado a una pantalla en cualquier momento
+ * Updates name or playlist assignment for a screen.
  */
 export const updateScreenDetails = async (id: string, name: string, playlistId: string): Promise<void> => {
   assertAuth();
@@ -77,18 +74,60 @@ export const updateScreenDetails = async (id: string, name: string, playlistId: 
 };
 
 /**
- * Elimina o "desempareja" la pantalla desde el Dashboard
+ * Permanently deletes a screen document from Firestore by ID.
  */
 export const deleteScreen = async (id: string): Promise<void> => {
   assertAuth();
+  await deleteDoc(doc(db, "screens", id));
+};
 
-  // Puedes decidir borrarla por completo, o reiniciarle el 'pairingCode' 
-  // para que vuelva a mostrar el código en la TV.
+/**
+ * Checks if a screen document exists in Firestore.
+ */
+export const screenExists = async (id: string): Promise<boolean> => {
   const screenRef = doc(db, "screens", id);
-  await updateDoc(screenRef, {
-    playlistId: null,
-    name: "Desconectada",
-    // Esta parte requerirá que el frontend del player genere un nuevo código 
-    // y lo escuche, pero para el Dashboard esto basta como "desemparejamiento temporal"
-  });
+  const snap = await getDoc(screenRef);
+  return snap.exists();
+};
+
+/**
+ * Purges stale/orphan screen documents:
+ * - Screens still named "New TV" (never claimed)
+ * - Screens with lastSeen older than 24 hours
+ * Returns the count of deleted documents.
+ */
+export const purgeStaleScreens = async (): Promise<number> => {
+  assertAuth();
+
+  const screensRef = collection(db, "screens");
+  const allScreensSnap = await getDocs(query(screensRef));
+  
+  const now = Date.now();
+  const TWENTY_FOUR_HOURS = 24 * 60 * 60 * 1000;
+  let deletedCount = 0;
+
+  for (const screenDoc of allScreensSnap.docs) {
+    const data = screenDoc.data();
+    const name = data.name || "";
+    const lastSeen = data.lastSeen;
+
+    // Condition 1: Never given a real name (unclaimed garbage)
+    const isUnnamed = name === "New TV" || name === "Nueva TV" || name.trim() === "";
+
+    // Condition 2: Last seen more than 24h ago
+    let isStale = false;
+    if (lastSeen) {
+      const lastSeenMs = lastSeen instanceof Timestamp 
+        ? lastSeen.toMillis() 
+        : new Date(lastSeen).getTime();
+      isStale = (now - lastSeenMs) > TWENTY_FOUR_HOURS;
+    }
+
+    if (isUnnamed || isStale) {
+      await deleteDoc(screenDoc.ref);
+      deletedCount++;
+    }
+  }
+
+  return deletedCount;
 };

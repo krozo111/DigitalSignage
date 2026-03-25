@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
-import { createPlaylist, getAllPlaylists, Playlist } from "@/lib/services/playlistService";
+import { createPlaylist, getAllPlaylists, updatePlaylist, deletePlaylist, Playlist } from "@/lib/services/playlistService";
 
 interface BuiltItem extends MediaItem {
   duration: number;
@@ -17,6 +17,7 @@ export default function PlaylistsConstructorPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [view, setView] = useState<"list" | "create">("list");
+  const [editingPlaylistId, setEditingPlaylistId] = useState<string | null>(null);
   
   // Form State
   const [playlistName, setPlaylistName] = useState("");
@@ -45,7 +46,7 @@ export default function PlaylistsConstructorPage() {
   const addItem = (media: MediaItem) => {
     setSelectedItems((prev) => [
       ...prev,
-      { ...media, duration: media.type === "vid" ? 15 : 10 }, // Predeterminado 10s imagenes, 15s video
+      { ...media, duration: media.type === "vid" ? 15 : 10 }, // Default 10s images, 15s video
     ]);
   };
 
@@ -72,13 +73,50 @@ export default function PlaylistsConstructorPage() {
     setSelectedItems(newItems);
   };
 
+  const handleEditPlaylist = (playlist: Playlist) => {
+    const builtItems: BuiltItem[] = playlist.items.map(item => {
+      const mediaInfo = mediaList.find(m => m.id === item.mediaId);
+      if (mediaInfo) {
+        return { ...mediaInfo, duration: item.duration };
+      }
+      return { 
+        id: item.mediaId, 
+        name: "File not found", 
+        url: "", 
+        type: "img",
+        size: 0,
+        storagePath: "",
+        createdAt: null, 
+        duration: item.duration 
+      };
+    });
+
+    setPlaylistName(playlist.name);
+    setSelectedItems(builtItems);
+    setEditingPlaylistId(playlist.id);
+    setView("create");
+  };
+
+  const handleDeletePlaylist = async (id: string, name: string) => {
+    if (confirm(`Are you sure you want to delete the playlist "${name}"?`)) {
+      try {
+        setLoading(true);
+        await deletePlaylist(id);
+        await fetchInitialData();
+      } catch (err: any) {
+        alert("Error deleting: " + err.message);
+        setLoading(false);
+      }
+    }
+  };
+
   const handleSave = async () => {
     if (!playlistName.trim()) {
-      alert("Debes poner un nombre a la playlist");
+      alert("You must name the playlist");
       return;
     }
     if (selectedItems.length === 0) {
-      alert("Selecciona al menos un archivo multimedia");
+      alert("Select at least one media file");
       return;
     }
 
@@ -91,13 +129,18 @@ export default function PlaylistsConstructorPage() {
         order: index,
       }));
 
-      await createPlaylist(playlistName, itemsToSave);
+      if (editingPlaylistId) {
+        await updatePlaylist(editingPlaylistId, playlistName, itemsToSave);
+      } else {
+        await createPlaylist(playlistName, itemsToSave);
+      }
       
       // Cleanup & success
       setPlaylistName("");
       setSelectedItems([]);
+      setEditingPlaylistId(null);
       setView("list");
-      alert("Playlist guardada con éxito.");
+      alert(editingPlaylistId ? "Playlist updated successfully." : "Playlist saved successfully.");
     } catch (error: any) {
       alert("Error: " + error.message);
     } finally {
@@ -106,7 +149,7 @@ export default function PlaylistsConstructorPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-20 text-slate-400">Cargando...</div>;
+    return <div className="text-center py-20 text-slate-400">Loading...</div>;
   }
 
   return (
@@ -115,14 +158,21 @@ export default function PlaylistsConstructorPage() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Playlists</h2>
           <p className="text-slate-400 mt-1">
-            {view === "list" ? "Gestiona tus listas creadas." : "Constructor Visual"}
+            {view === "list" ? "Manage your created lists." : editingPlaylistId ? "Edit Playlist" : "Visual Builder"}
           </p>
         </div>
         <button
-          onClick={() => setView(view === "list" ? "create" : "list")}
-          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg border-none"
+          onClick={() => {
+            setView(view === "list" ? "create" : "list");
+            if (view === "create") {
+              setPlaylistName("");
+              setSelectedItems([]);
+              setEditingPlaylistId(null);
+            }
+          }}
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg border-none cursor-pointer"
         >
-          {view === "list" ? "+ Nueva Playlist" : "Volver a Mis Playlists"}
+          {view === "list" ? "+ New Playlist" : "Back to My Playlists"}
         </button>
       </div>
 
@@ -130,13 +180,29 @@ export default function PlaylistsConstructorPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {playlists.length === 0 ? (
             <div className="col-span-full py-20 text-center text-slate-500 border border-dashed border-slate-700 rounded-xl">
-              No tienes listas creadas aún.
+              You don't have any lists created yet.
             </div>
           ) : (
             playlists.map((pl) => (
-              <div key={pl.id} className="bg-slate-800 p-5 rounded-xl border border-slate-700">
-                <h3 className="text-lg font-bold text-white truncate">{pl.name}</h3>
-                <p className="text-sm text-slate-400 mt-1">{pl.items.length} recursos asignados</p>
+              <div key={pl.id} className="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-bold text-white truncate">{pl.name}</h3>
+                  <p className="text-sm text-slate-400 mt-1">{pl.items.length} resources assigned</p>
+                </div>
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-700/50">
+                  <button 
+                    onClick={() => handleEditPlaylist(pl)}
+                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors border-none cursor-pointer"
+                  >
+                    Edit
+                  </button>
+                  <button 
+                    onClick={() => handleDeletePlaylist(pl.id, pl.name)}
+                    className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors border-none cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))
           )}
@@ -145,10 +211,10 @@ export default function PlaylistsConstructorPage() {
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Col 1: Biblioteca (Pickers) */}
           <div className="w-full lg:w-1/2 bg-slate-800 p-4 border border-slate-700 rounded-xl flex flex-col h-[600px]">
-            <h3 className="text-lg font-bold mb-4">Librería</h3>
+            <h3 className="text-lg font-bold mb-4">Library</h3>
             <div className="overflow-y-auto flex-1 pr-2 grid grid-cols-2 gap-3 pb-4">
                {mediaList.length === 0 ? (
-                  <p className="col-span-2 text-slate-500 text-sm">No hay contenido en Media Library.</p>
+                  <p className="col-span-2 text-slate-500 text-sm">No content in Media Library.</p>
                ) : (
                   mediaList.map((media) => (
                     <div 
@@ -162,7 +228,7 @@ export default function PlaylistsConstructorPage() {
                         <img src={media.url} alt={media.name} className="w-full h-full object-cover" />
                       )}
                       <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <span className="text-white font-bold text-sm">+ Añadir</span>
+                        <span className="text-white font-bold text-sm">+ Add</span>
                       </div>
                     </div>
                   ))
@@ -174,7 +240,7 @@ export default function PlaylistsConstructorPage() {
           <div className="w-full lg:w-1/2 bg-slate-800 p-6 border border-slate-700 rounded-xl flex flex-col min-h-[600px]">
             <input
               type="text"
-              placeholder="Nombre de la Playlist (ej: Pantalla Principal Local 1)"
+              placeholder="Playlist Name (ex: Local Main Screen 1)"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
@@ -184,8 +250,8 @@ export default function PlaylistsConstructorPage() {
               {selectedItems.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-slate-500 mt-20">
                   <span className="text-4xl mb-3">🫙</span>
-                  <p>La playlist está vacía.</p>
-                  <p className="text-sm">Toca un elemento de la izquierda para añadirlo.</p>
+                  <p>The playlist is empty.</p>
+                  <p className="text-sm">Tap an element on the left to add it.</p>
                 </div>
               ) : (
                 selectedItems.map((item, idx) => (
@@ -215,7 +281,7 @@ export default function PlaylistsConstructorPage() {
                     <div className="flex-1 min-w-0">
                        <p className="text-sm font-medium text-slate-200 truncate">{item.name}</p>
                        <div className="flex items-center gap-2 mt-2">
-                         <label className="text-xs text-slate-400">Duración (seg):</label>
+                         <label className="text-xs text-slate-400">Duration (sec):</label>
                          <input 
                             type="number" 
                             min="1"
@@ -240,9 +306,9 @@ export default function PlaylistsConstructorPage() {
             <button
                disabled={saving || selectedItems.length === 0 || !playlistName}
                onClick={handleSave}
-               className="mt-6 w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-colors"
+               className="mt-6 w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-colors border-none cursor-pointer"
             >
-              {saving ? "Guardando..." : "💾 Guardar Playlist"}
+              {saving ? "Saving..." : editingPlaylistId ? "💾 Update Playlist" : "💾 Save Playlist"}
             </button>
           </div>
         </div>

@@ -37,68 +37,68 @@ export default function AdminDashboardHome() {
   const missingPlaylistScreens = screens.filter(s => !s.pairingCode && !s.playlistId).length;
 
   if (loading) {
-    return <div className="text-center py-20 text-slate-400">Cargando métricas...</div>;
+    return <div className="text-center py-20 text-slate-400">Loading metrics...</div>;
   }
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Dashboard General</h2>
-        <p className="text-slate-400 mt-1">Resumen del estado actual de tu red de pantallas.</p>
+        <h2 className="text-3xl font-bold tracking-tight">General Dashboard</h2>
+        <p className="text-slate-400 mt-1">Overview of your screen network's current state.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Métricas Pantallas */}
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm flex flex-col justify-between">
           <div>
-             <h3 className="text-slate-400 text-sm font-medium">Pantallas Vinculadas</h3>
+             <h3 className="text-slate-400 text-sm font-medium">Linked Screens</h3>
              <div className="flex items-end gap-3 mt-2">
                  <span className="text-4xl font-bold text-white">{onlineScreens}</span>
                  <span className="text-slate-500 mb-1">/ {screens.length} total</span>
              </div>
              {missingPlaylistScreens > 0 && (
                 <p className="text-yellow-400 text-xs mt-3 flex items-center gap-1">
-                   ⚠️ {missingPlaylistScreens} pantalla(s) sin lista asignada
+                   ⚠️ {missingPlaylistScreens} screen(s) without assigned playlist
                 </p>
              )}
           </div>
-          <Link href="/admin/screens" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Administrar Pantallas →</Link>
+          <Link href="/admin/screens" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Manage Screens →</Link>
         </div>
 
         {/* Métricas Playlists */}
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm flex flex-col justify-between">
           <div>
-             <h3 className="text-slate-400 text-sm font-medium">Listas de Reproducción</h3>
+             <h3 className="text-slate-400 text-sm font-medium">Playlists</h3>
              <div className="flex items-end gap-3 mt-2">
                  <span className="text-4xl font-bold text-white">{playlists.length}</span>
              </div>
           </div>
-          <Link href="/admin/playlists" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Crear Listas →</Link>
+          <Link href="/admin/playlists" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Create Playlists →</Link>
         </div>
 
         {/* Métricas Archivos */}
         <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-sm flex flex-col justify-between">
           <div>
-             <h3 className="text-slate-400 text-sm font-medium">Archivos (Storage)</h3>
+             <h3 className="text-slate-400 text-sm font-medium">Files (Storage)</h3>
              <div className="flex items-end gap-3 mt-2">
                  <span className="text-4xl font-bold text-white">{mediaItems.length}</span>
              </div>
              <p className="text-slate-500 text-xs mt-3">
-               Peso Total: ~{(mediaItems.reduce((acc, crr) => acc + crr.size, 0) / 1024 / 1024).toFixed(1)} MB
+               Total Size: ~{(mediaItems.reduce((acc, crr) => acc + crr.size, 0) / 1024 / 1024).toFixed(1)} MB
              </p>
           </div>
-          <Link href="/admin/media" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Ir a Biblioteca →</Link>
+          <Link href="/admin/media" className="text-blue-400 text-sm mt-6 hover:text-blue-300">Go to Library →</Link>
         </div>
       </div>
       
       {/* Guía Rápida */}
       <div className="bg-gradient-to-r from-blue-900/50 to-slate-900 border border-blue-800/50 p-6 rounded-xl">
-        <h3 className="text-lg font-bold text-blue-200 mb-2">🚀 ¿Cómo arrancar una pantalla?</h3>
+        <h3 className="text-lg font-bold text-blue-200 mb-2">🚀 How to start a screen?</h3>
         <ol className="list-decimal list-inside text-slate-300 space-y-2 text-sm leading-relaxed">
-           <li>Sube imágenes y videos (mp4) en la sección <Link href="/admin/media" className="text-blue-400 hover:underline">Media Library</Link>.</li>
-           <li>Agrupa esos recursos ordenándolos en <Link href="/admin/playlists" className="text-blue-400 hover:underline">Playlists</Link>.</li>
-           <li>Abre la aplicación <b>/player</b> en tu Smart TV para ver el código aleatorio gigante.</li>
-           <li>Inserta ese código en la pestaña de <Link href="/admin/screens" className="text-blue-400 hover:underline">Screens</Link> y asóciale la playlist que creaste. ¡Listo!</li>
+           <li>Upload images and videos (mp4) in the <Link href="/admin/media" className="text-blue-400 hover:underline">Media</Link> section.</li>
+           <li>Group these resources by ordering them in <Link href="/admin/playlists" className="text-blue-400 hover:underline">Playlists</Link>.</li>
+           <li>Open the <b>/player</b> app on your Smart TV to see the giant random code.</li>
+           <li>Enter that code in the <Link href="/admin/screens" className="text-blue-400 hover:underline">Screens</Link> tab and associate the playlist you created. Done!</li>
         </ol>
       </div>
     </div>

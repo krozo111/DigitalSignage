@@ -28,7 +28,7 @@ export default function AdminLogin() {
 
     // Verificación preliminar antes de enviar a Firebase
     if (adminEmail && email !== adminEmail) {
-      setError("Acceso denegado: El correo no pertenece al administrador.");
+      setError("Access denied: Email does not belong to administrator.");
       setLoading(false);
       return;
     }
@@ -39,13 +39,13 @@ export default function AdminLogin() {
       router.push("/admin"); // Redireccionar al dashboard
     } catch (err: any) {
       console.error(err);
-      setError("Fallo al iniciar sesión: Revisa tus credenciales.");
+      setError("Login failed: Check your credentials.");
     } finally {
       setLoading(false);
     }
   };
 
-  if (!isMounted) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-500">Cargando...</div>;
+  if (!isMounted) return <div className="min-h-screen bg-slate-900 flex items-center justify-center text-slate-500">Loading...</div>;
 
   return (
     <div className="flex bg-slate-900 justify-center items-center min-vh-100 min-h-screen">
@@ -61,20 +61,20 @@ export default function AdminLogin() {
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              Correo Electrónico
+              Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="admin@ejemplo.com"
+              placeholder="admin@example.com"
               required
             />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-300 mb-2">
-              Contraseña
+              Password
             </label>
             <input
               type="password"
@@ -93,7 +93,7 @@ export default function AdminLogin() {
             {loading ? (
               <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
             ) : (
-              "Ingresar al Dashboard"
+              "Enter Dashboard"
             )}
           </button>
         </form>
