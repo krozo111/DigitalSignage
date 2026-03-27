@@ -156,8 +156,8 @@ export default function PlaylistsConstructorPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Playlists</h2>
-          <p className="text-slate-400 mt-1">
+          <h2 className="text-3xl font-bold tracking-tight text-white">Playlists</h2>
+          <p className="text-white/40 mt-1">
             {view === "list" ? "Manage your created lists." : editingPlaylistId ? "Edit Playlist" : "Visual Builder"}
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function PlaylistsConstructorPage() {
               setEditingPlaylistId(null);
             }
           }}
-          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-lg border-none cursor-pointer"
+          className="w-full md:w-auto bg-yugo-accent hover:bg-yugo-accent/90 text-yugo-primary px-6 py-2.5 rounded-lg border-none cursor-pointer font-bold transition-colors"
         >
           {view === "list" ? "+ New Playlist" : "Back to My Playlists"}
         </button>
@@ -179,20 +179,20 @@ export default function PlaylistsConstructorPage() {
       {view === "list" ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {playlists.length === 0 ? (
-            <div className="col-span-full py-20 text-center text-slate-500 border border-dashed border-slate-700 rounded-xl">
+            <div className="col-span-full py-20 text-center text-white/20 border border-dashed border-white/10 rounded-xl">
               You don't have any lists created yet.
             </div>
           ) : (
             playlists.map((pl) => (
-              <div key={pl.id} className="bg-slate-800 p-5 rounded-xl border border-slate-700 flex flex-col justify-between">
+              <div key={pl.id} className="bg-yugo-primary/40 p-5 rounded-xl border border-white/5 flex flex-col justify-between backdrop-blur-sm shadow-sm group">
                 <div>
-                  <h3 className="text-lg font-bold text-white truncate">{pl.name}</h3>
-                  <p className="text-sm text-slate-400 mt-1">{pl.items.length} resources assigned</p>
+                  <h3 className="text-lg font-bold text-white truncate group-hover:text-yugo-accent transition-colors">{pl.name}</h3>
+                  <p className="text-sm text-white/40 mt-1">{pl.items.length} resources assigned</p>
                 </div>
-                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-slate-700/50">
+                <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-white/5">
                   <button 
                     onClick={() => handleEditPlaylist(pl)}
-                    className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors border-none cursor-pointer"
+                    className="px-3 py-1.5 bg-yugo-accent/10 border border-yugo-accent/20 text-yugo-accent hover:bg-yugo-accent hover:text-yugo-primary rounded-lg text-sm font-bold transition-all cursor-pointer"
                   >
                     Edit
                   </button>
@@ -210,25 +210,25 @@ export default function PlaylistsConstructorPage() {
       ) : (
         <div className="flex flex-col lg:flex-row gap-6">
           {/* Col 1: Biblioteca (Pickers) */}
-          <div className="w-full lg:w-1/2 bg-slate-800 p-4 border border-slate-700 rounded-xl flex flex-col h-[600px]">
-            <h3 className="text-lg font-bold mb-4">Library</h3>
+          <div className="w-full lg:w-1/2 bg-yugo-primary/40 p-4 border border-white/5 rounded-xl flex flex-col h-[600px] backdrop-blur-sm">
+            <h3 className="text-lg font-bold mb-4 text-white">Library</h3>
             <div className="overflow-y-auto flex-1 pr-2 grid grid-cols-2 gap-3 pb-4">
                {mediaList.length === 0 ? (
-                  <p className="col-span-2 text-slate-500 text-sm">No content in Media Library.</p>
+                  <p className="col-span-2 text-white/20 text-sm">No content in Media Library.</p>
                ) : (
                   mediaList.map((media) => (
                     <div 
                       key={media.id} 
                       onClick={() => addItem(media)}
-                      className="cursor-pointer group relative bg-slate-900 rounded-lg overflow-hidden border border-slate-700 hover:border-blue-500 transition-all aspect-video"
+                      className="cursor-pointer group relative bg-yugo-primary/60 rounded-lg overflow-hidden border border-white/5 hover:border-yugo-accent transition-all aspect-video shadow-md"
                     >
                       {media.type === "vid" ? (
                         <video src={media.url} className="w-full h-full object-cover" />
                       ) : (
                         <img src={media.url} alt={media.name} className="w-full h-full object-cover" />
                       )}
-                      <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                        <span className="text-white font-bold text-sm">+ Add</span>
+                      <div className="absolute inset-0 bg-yugo-primary/80 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                        <span className="text-yugo-accent font-bold text-sm">+ Add</span>
                       </div>
                     </div>
                   ))
@@ -237,40 +237,40 @@ export default function PlaylistsConstructorPage() {
           </div>
 
           {/* Col 2: Constructor (Builder) */}
-          <div className="w-full lg:w-1/2 bg-slate-800 p-6 border border-slate-700 rounded-xl flex flex-col min-h-[600px]">
+          <div className="w-full lg:w-1/2 bg-yugo-primary/40 p-6 border border-white/5 rounded-xl flex flex-col min-h-[600px] backdrop-blur-sm">
             <input
               type="text"
               placeholder="Playlist Name (ex: Local Main Screen 1)"
               value={playlistName}
               onChange={(e) => setPlaylistName(e.target.value)}
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500 mb-6"
+              className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yugo-accent mb-6 placeholder-white/20"
             />
 
-            <div className="flex-1 overflow-y-auto space-y-3 pr-2 shadow-inner bg-slate-900/50 p-3 rounded-lg border border-slate-700/50">
+            <div className="flex-1 overflow-y-auto space-y-3 pr-2 shadow-inner bg-yugo-primary/20 p-3 rounded-lg border border-white/5">
               {selectedItems.length === 0 ? (
-                <div className="h-full flex flex-col items-center justify-center text-slate-500 mt-20">
+                <div className="h-full flex flex-col items-center justify-center text-white/20 mt-20">
                   <span className="text-4xl mb-3">🫙</span>
                   <p>The playlist is empty.</p>
                   <p className="text-sm">Tap an element on the left to add it.</p>
                 </div>
               ) : (
                 selectedItems.map((item, idx) => (
-                  <div key={`${item.id}-${idx}`} className="flex items-center gap-3 bg-slate-800 border border-slate-700 p-3 rounded-lg shadow-sm">
+                  <div key={`${item.id}-${idx}`} className="flex items-center gap-3 bg-yugo-primary/40 border border-white/5 p-3 rounded-lg shadow-sm">
                     {/* Controles de orden */}
                     <div className="flex flex-col gap-1">
                       <button 
                         onClick={() => moveItem(idx, "up")}
                         disabled={idx === 0} 
-                        className="text-slate-500 hover:text-white disabled:opacity-30 p-1"
+                        className="text-white/40 hover:text-yugo-accent disabled:opacity-10 p-1 transition-colors"
                       >▲</button>
                       <button 
                         onClick={() => moveItem(idx, "down")} 
                         disabled={idx === selectedItems.length - 1}
-                        className="text-slate-500 hover:text-white disabled:opacity-30 p-1"
+                        className="text-white/40 hover:text-yugo-accent disabled:opacity-10 p-1 transition-colors"
                       >▼</button>
                     </div>
 
-                    <div className="h-16 w-16 bg-slate-900 rounded-md overflow-hidden flex-shrink-0">
+                    <div className="h-16 w-16 bg-yugo-primary/60 rounded-md overflow-hidden flex-shrink-0">
                       {item.type === "vid" ? (
                         <video src={item.url} className="h-full w-full object-cover" />
                       ) : (
@@ -279,15 +279,15 @@ export default function PlaylistsConstructorPage() {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                       <p className="text-sm font-medium text-slate-200 truncate">{item.name}</p>
+                       <p className="text-sm font-medium text-white truncate">{item.name}</p>
                        <div className="flex items-center gap-2 mt-2">
-                         <label className="text-xs text-slate-400">Duration (sec):</label>
+                         <label className="text-xs text-white/40">Duration (sec):</label>
                          <input 
                             type="number" 
                             min="1"
                             value={item.duration}
                             onChange={(e) => updateDuration(idx, parseInt(e.target.value) || 1)}
-                            className="w-20 bg-slate-900 border border-slate-600 rounded px-2 py-1 text-sm text-white"
+                            className="w-20 bg-yugo-primary/60 border border-white/10 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-yugo-accent"
                          />
                        </div>
                     </div>
@@ -306,7 +306,7 @@ export default function PlaylistsConstructorPage() {
             <button
                disabled={saving || selectedItems.length === 0 || !playlistName}
                onClick={handleSave}
-               className="mt-6 w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-colors border-none cursor-pointer"
+               className="mt-6 w-full bg-yugo-secondary hover:bg-yugo-secondary/90 disabled:opacity-50 text-yugo-primary font-bold py-3 px-4 rounded-lg flex items-center justify-center transition-all shadow-lg cursor-pointer border-none"
             >
               {saving ? "Saving..." : editingPlaylistId ? "💾 Update Playlist" : "💾 Save Playlist"}
             </button>

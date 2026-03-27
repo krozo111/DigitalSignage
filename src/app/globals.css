@@ -1,13 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0a0a;
+  --foreground: #ffffff;
+  --yugo-primary: #2B1F41;
+  --yugo-accent: #EFB851;
+  --yugo-secondary: #50CBAD;
+  --yugo-vibrant: #6C49EE;
+  --yugo-soft: #FFB8AA;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-yugo-primary: var(--yugo-primary);
+  --color-yugo-accent: var(--yugo-accent);
+  --color-yugo-secondary: var(--yugo-secondary);
+  --color-yugo-vibrant: var(--yugo-vibrant);
+  --color-yugo-soft: var(--yugo-soft);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

@@ -69,8 +69,8 @@ export default function MediaLibraryPage() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Media Library</h2>
-          <p className="text-slate-400 mt-1">Image and video management (Max 50MB per file).</p>
+          <h2 className="text-3xl font-bold tracking-tight text-white">Media Library</h2>
+          <p className="text-white/40 mt-1">Image and video management (Max 50MB per file).</p>
         </div>
 
         <div className="w-full md:w-auto">
@@ -84,11 +84,11 @@ export default function MediaLibraryPage() {
           <button 
             disabled={uploading}
             onClick={() => fileInputRef.current?.click()}
-            className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white px-6 py-2.5 rounded-lg shadow-sm transition-all font-medium flex items-center justify-center gap-2"
+            className="w-full md:w-auto bg-yugo-accent hover:bg-yugo-accent/90 disabled:opacity-50 text-yugo-primary px-6 py-2.5 rounded-lg shadow-sm transition-all font-bold flex items-center justify-center gap-2"
           >
             {uploading ? (
               <span className="flex items-center gap-2">
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-yugo-primary"></span>
                 Uploading...
               </span>
             ) : (
@@ -99,26 +99,26 @@ export default function MediaLibraryPage() {
       </div>
 
       {uploading && (
-        <div className="w-full bg-slate-700 rounded-full h-2.5 overflow-hidden">
+        <div className="w-full bg-yugo-primary/60 border border-white/5 rounded-full h-2.5 overflow-hidden">
           <div 
-            className="bg-blue-500 h-2.5 rounded-full transition-all duration-300" 
+            className="bg-yugo-accent h-2.5 rounded-full transition-all duration-300" 
             style={{ width: `${progress}%` }}
           ></div>
         </div>
       )}
 
       {loading ? (
-        <div className="text-center py-20 text-slate-400">Loading media...</div>
+        <div className="text-center py-20 text-white/40 font-medium">Loading media...</div>
       ) : mediaList.length === 0 ? (
-        <div className="text-center py-20 border-2 border-dashed border-slate-700 rounded-xl text-slate-400">
+        <div className="text-center py-20 border-2 border-dashed border-white/5 rounded-xl text-white/40">
           <p className="mb-2">The library is empty.</p>
           <p className="text-sm">Upload photos or videos to start creating playlists.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {mediaList.map((item) => (
-            <div key={item.id} className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700 shadow-sm group">
-              <div className="aspect-square bg-slate-900 relative">
+            <div key={item.id} className="bg-yugo-primary/40 rounded-xl overflow-hidden border border-white/5 shadow-sm group backdrop-blur-sm">
+              <div className="aspect-square bg-yugo-primary/60 relative">
                 {item.type === "vid" ? (
                   <video 
                      src={item.url} 
@@ -130,10 +130,10 @@ export default function MediaLibraryPage() {
                 ) : (
                   <img src={item.url} alt={item.name} className="w-full h-full object-cover" />
                 )}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <div className="absolute inset-0 bg-yugo-primary/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                    <button 
                       onClick={() => handleDelete(item.id, item.storagePath)}
-                      className="bg-red-600 text-white p-2 rounded-full hover:bg-red-700 transition"
+                      className="bg-red-600/90 text-white p-2 rounded-full hover:bg-red-600 transition shadow-lg"
                       title="Delete file"
                    >
                      🗑️
@@ -141,10 +141,10 @@ export default function MediaLibraryPage() {
                 </div>
               </div>
               <div className="p-3">
-                <p className="text-sm font-medium text-slate-200 truncate">{item.name}</p>
-                <p className="text-xs text-slate-500 mt-1 flex justify-between">
+                <p className="text-sm font-medium text-white truncate">{item.name}</p>
+                <p className="text-xs text-white/40 mt-1 flex justify-between uppercase font-bold tracking-wider">
                   <span>{(item.size / 1024 / 1024).toFixed(1)} MB</span>
-                  <span className="uppercase">{item.type}</span>
+                  <span>{item.type}</span>
                 </p>
               </div>
             </div>

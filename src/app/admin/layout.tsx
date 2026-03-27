@@ -35,8 +35,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (loading) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-900 text-white">
-        <span className="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-500 mr-4"></span>
+      <div className="flex h-screen w-full items-center justify-center bg-yugo-primary text-white">
+        <span className="animate-spin rounded-full h-10 w-10 border-b-2 border-yugo-accent mr-4"></span>
         <span className="text-xl font-medium">Verifying access...</span>
       </div>
     );
@@ -47,15 +47,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }
 
   return (
-    <div className="flex h-screen bg-slate-900 text-slate-100 flex-col md:flex-row">
+    <div className="flex h-screen bg-yugo-primary text-white flex-col md:flex-row">
       {/* Sidebar (Desktop) / Topbar (Mobile) */}
-      <aside className="w-full md:w-64 bg-slate-800 border-b md:border-b-0 md:border-r border-slate-700 flex flex-col justify-between">
+      <aside className="w-full md:w-64 bg-yugo-primary/50 border-b md:border-b-0 md:border-r border-white/5 flex flex-col justify-between backdrop-blur-sm">
         <div>
           <div className="p-6">
             <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <span className="text-blue-500">DSF</span> Admin
+              <span className="text-yugo-accent">Yugo</span> Admin
             </h1>
-            <p className="text-xs text-slate-400 mt-1 truncate">{user?.email}</p>
+            <p className="text-xs text-white/40 mt-1 truncate">{user?.email}</p>
           </div>
           <nav className="flex md:flex-col gap-1 px-4 overflow-x-auto md:overflow-visible pb-4 md:pb-0">
             {navItems.map((item) => {
@@ -66,8 +66,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   href={item.href}
                   className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
                     isActive
-                      ? "bg-blue-600/10 text-blue-400 font-medium"
-                      : "text-slate-400 hover:bg-slate-700/50 hover:text-slate-200"
+                      ? "bg-yugo-accent/10 text-yugo-accent font-medium border-l-2 border-yugo-accent rounded-none"
+                      : "text-white/60 hover:bg-white/5 hover:text-white"
                   }`}
                 >
                   <span>{item.icon}</span>
@@ -97,7 +97,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </main>
 
       {/* Mobile Logout (Bottom) */}
-      <div className="md:hidden border-t border-slate-700 p-2 bg-slate-800">
+      <div className="md:hidden border-t border-white/5 p-2 bg-yugo-primary/80">
         <button
           onClick={handleLogout}
           className="w-full text-center py-3 text-red-400 font-medium active:bg-red-500/10 rounded-lg transition-colors"
