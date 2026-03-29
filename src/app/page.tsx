@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase.config";
 import { doc, collection, addDoc, onSnapshot, getDoc, setDoc } from "firebase/firestore";
 import { PlaybackItem, useSignageLoop } from "@/hooks/useSignageLoop";
@@ -206,6 +206,29 @@ export default function Home() {
 
   // 4. Playback loop
   const { currentItem, nextItem, goToNext } = useSignageLoop(mediaItems);
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Hardware wakeup: Ensure the TV video motor is triggered on src change
+  useEffect(() => {
+    if (currentItem?.type === "vid" && videoRef.current) {
+      videoRef.current.play().catch(err => {
+        console.warn("Manual video play attempt failed (expected on some TV OS):", err);
+      });
+    }
+  }, [currentItem?.url]);
+
+  const handleVideoEnd = () => {
+    if (mediaItems.length === 1) {
+      // For single video playlists, manually rewind and play
+      if (videoRef.current) {
+        videoRef.current.currentTime = 0;
+        videoRef.current.play().catch(() => {});
+      }
+    } else {
+      // For multiple items, move to next
+      goToNext();
+    }
+  };
 
   // ======= RENDER =======
   
@@ -279,12 +302,12 @@ export default function Home() {
             <div key={currentItem.id} className="absolute inset-0 z-0">
               {currentItem.type === "vid" ? (
                 <video 
+                  ref={videoRef}
                   src={currentItem.url} 
                   autoPlay 
                   muted 
                   playsInline 
-                  loop={false}
-                  onEnded={() => goToNext()} 
+                  onEnded={handleVideoEnd} 
                   className="w-full h-full object-cover" 
                 />
               ) : (
