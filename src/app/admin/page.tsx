@@ -5,6 +5,11 @@ import { getAllScreens, Screen } from "@/lib/services/screenService";
 import { getAllPlaylists, Playlist } from "@/lib/services/playlistService";
 import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
 import Link from "next/link";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { ScreenIcon } from "@/components/icons/ScreenIcon";
+import { PlaylistIcon } from "@/components/icons/PlaylistIcon";
+import { MediaIcon } from "@/components/icons/MediaIcon";
+import { PageHeader } from "@/components/PageHeader";
 
 export default function AdminDashboardHome() {
   const [screens, setScreens] = useState<Screen[]>([]);
@@ -33,32 +38,41 @@ export default function AdminDashboardHome() {
     fetchDashboardData();
   }, []);
 
-  const onlineScreens = screens.filter(s => s.pairingCode === null).length; // Si no tiene pairing code, asumimos que está ligada (vinculada)
-  const missingPlaylistScreens = screens.filter(s => !s.pairingCode && !s.playlistId).length;
+  const linkedScreens = screens.filter(s => s.pairingCode === null).length;
+  const onlineScreens = screens.filter(s => s.status === "online").length;
+  const missingPlaylistScreens = screens.filter(s => s.pairingCode === null && !s.playlistId).length;
 
   if (loading) {
-    return <div className="text-center py-20 text-white/40">Loading metrics...</div>;
+    return <LoadingSkeleton variant="grid" count={3} />;
   }
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-white">General Dashboard</h2>
-        <p className="text-white/40 mt-1">Overview of your screen network's current state.</p>
-      </div>
+      <PageHeader
+        title="General Dashboard"
+        description="Overview of your screen network&apos;s current state."
+      />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Métricas Pantallas */}
         <div className="bg-yugo-primary/40 p-6 rounded-xl border border-white/5 shadow-sm flex flex-col justify-between backdrop-blur-sm">
           <div>
-             <h3 className="text-white/60 text-sm font-medium">Linked Screens</h3>
+             <h3 className="text-white/60 text-sm font-medium flex items-center gap-2">
+               <ScreenIcon className="text-yugo-secondary" /> Linked Screens
+             </h3>
              <div className="flex items-end gap-3 mt-2">
-                 <span className="text-4xl font-bold text-white">{onlineScreens}</span>
-                 <span className="text-white/20 mb-1">/ {screens.length} total</span>
+                 <span className="text-4xl font-bold text-white">{linkedScreens}</span>
+                  <span className="text-white/20 mb-1">/ {screens.length} registrations</span>
              </div>
+             {onlineScreens > 0 && (
+               <p className="text-yugo-secondary text-xs mt-2 flex items-center gap-1">
+                 <span className="inline-block w-1.5 h-1.5 rounded-full bg-yugo-secondary" />
+                 {onlineScreens} currently online
+               </p>
+             )}
              {missingPlaylistScreens > 0 && (
-                <p className="text-yugo-accent text-xs mt-3 flex items-center gap-1">
-                   ⚠️ {missingPlaylistScreens} screen(s) without assigned playlist
+                <p className="text-yugo-accent text-xs mt-1 flex items-center gap-1">
+                   ⚠️ {missingPlaylistScreens} without assigned playlist
                 </p>
              )}
           </div>
@@ -68,7 +82,9 @@ export default function AdminDashboardHome() {
         {/* Métricas Playlists */}
         <div className="bg-yugo-primary/40 p-6 rounded-xl border border-white/5 shadow-sm flex flex-col justify-between backdrop-blur-sm">
           <div>
-             <h3 className="text-white/60 text-sm font-medium">Playlists</h3>
+             <h3 className="text-white/60 text-sm font-medium flex items-center gap-2">
+               <PlaylistIcon className="text-yugo-accent" /> Playlists
+             </h3>
              <div className="flex items-end gap-3 mt-2">
                  <span className="text-4xl font-bold text-white">{playlists.length}</span>
              </div>
@@ -79,7 +95,9 @@ export default function AdminDashboardHome() {
         {/* Métricas Archivos */}
         <div className="bg-yugo-primary/40 p-6 rounded-xl border border-white/5 shadow-sm flex flex-col justify-between backdrop-blur-sm">
           <div>
-             <h3 className="text-white/60 text-sm font-medium">Files (Storage)</h3>
+             <h3 className="text-white/60 text-sm font-medium flex items-center gap-2">
+               <MediaIcon className="text-yugo-vibrant" /> Files (Storage)
+             </h3>
              <div className="flex items-end gap-3 mt-2">
                  <span className="text-4xl font-bold text-white">{mediaItems.length}</span>
              </div>

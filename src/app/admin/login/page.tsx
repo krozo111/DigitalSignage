@@ -5,6 +5,8 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase.config";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/Button";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -12,14 +14,18 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   
-  const { adminEmail } = useAuth();
+  const { adminEmail, user } = useAuth();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
-  
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (user) router.push("/admin");
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,10 +51,12 @@ export default function AdminLogin() {
     }
   };
 
+  if (user) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-white/40">Redirecting...</div>;
+
   if (!isMounted) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-white/40">Loading...</div>;
 
   return (
-    <div className="flex bg-yugo-primary justify-center items-center min-vh-100 min-h-screen">
+    <div className="flex bg-yugo-primary justify-center items-center min-h-screen">
       <div className="bg-yugo-primary/40 p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/5 backdrop-blur-sm">
         <h1 className="text-3xl font-bold text-center text-white mb-6 tracking-tight">
           <span className="text-yugo-accent">Yugo</span> Signage
@@ -59,43 +67,31 @@ export default function AdminLogin() {
           </div>
         )}
         <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">
-              Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yugo-accent focus:border-transparent transition-all"
-              placeholder="admin@example.com"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-white/70 mb-2">
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-yugo-accent focus:border-transparent transition-all"
-              placeholder="••••••••"
-              required
-            />
-          </div>
-          <button
+          <Input
+            label="Email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@example.com"
+            required
+          />
+          <Input
+            label="Password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+          />
+          <Button
             type="submit"
             disabled={loading}
-            className="w-full bg-yugo-accent hover:bg-yugo-accent/90 text-yugo-primary font-bold py-3 px-4 rounded-lg transition-colors flex justify-center items-center h-[52px]"
+            loading={loading}
+            className="w-full"
+            size="md"
           >
-            {loading ? (
-              <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></span>
-            ) : (
-              "Enter Dashboard"
-            )}
-          </button>
+            {loading ? "Signing in..." : "Enter Dashboard"}
+          </Button>
         </form>
       </div>
     </div>

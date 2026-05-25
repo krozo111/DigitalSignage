@@ -1,26 +1,61 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { 
-  claimScreen, 
-  getAllScreens, 
-  updateScreenDetails, 
+import { useEffect, useState, useMemo } from "react";
+import {
+  claimScreen,
+  getAllScreens,
+  updateScreenDetails,
   deleteScreen,
   purgeStaleScreens,
-  Screen 
+  Screen
 } from "@/lib/services/screenService";
 import { getAllPlaylists, Playlist } from "@/lib/services/playlistService";
+import { toast } from "sonner";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { PageHeader } from "@/components/PageHeader";
+
+const STALE_THRESHOLD_MS = 5 * 60 * 1000;
+
+function screenStatus(screen: Screen): { label: string; color: string; dot: string } {
+  if (screen.pairingCode) return { label: "Unpaired", color: "text-yellow-400", dot: "bg-yellow-400" };
+
+  const now = Date.now();
+  const lastSeen = screen.lastSeen;
+  if (!lastSeen) return { label: "Unknown", color: "text-white/40", dot: "bg-white/20" };
+
+  const lastSeenMs = lastSeen.toMillis ? lastSeen.toMillis() : new Date(lastSeen).getTime();
+  const diff = now - lastSeenMs;
+
+  if (diff < STALE_THRESHOLD_MS) return { label: "Online", color: "text-yugo-secondary", dot: "bg-yugo-secondary" };
+  return { label: "Offline", color: "text-white/40", dot: "bg-white/20" };
+}
 
 export default function ScreensPage() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
-  // Form State para Reclamar
   const [pairingCode, setPairingCode] = useState("");
   const [newName, setNewName] = useState("");
   const [selectedPlaylistId, setSelectedPlaylistId] = useState("");
   const [claiming, setClaiming] = useState(false);
+  const [codeError, setCodeError] = useState("");
+
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [purgeOpen, setPurgeOpen] = useState(false);
+
+  const filteredScreens = useMemo(() => {
+    if (!searchQuery.trim()) return screens;
+    const q = searchQuery.toLowerCase();
+    return screens.filter(s =>
+      s.name.toLowerCase().includes(q) ||
+      (s.pairingCode && s.pairingCode.toLowerCase().includes(q))
+    );
+  }, [screens, searchQuery]);
 
   useEffect(() => {
     fetchData();
@@ -44,20 +79,25 @@ export default function ScreensPage() {
 
   const handleClaim = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!pairingCode || !newName) return;
+
+    if (pairingCode.length !== 6) {
+      setCodeError("Code must be exactly 6 characters");
+      return;
+    }
+    if (!newName.trim()) return;
 
     try {
       setClaiming(true);
       await claimScreen(pairingCode, newName, selectedPlaylistId || "");
-      
-      // Reset form & Refresh
+
       setPairingCode("");
       setNewName("");
       setSelectedPlaylistId("");
+      setCodeError("");
       await fetchData();
-      alert("✅ Screen paired successfully.");
+      toast.success("Screen paired successfully");
     } catch (err: any) {
-      alert("❌ Pairing error: " + err.message);
+      toast.error("Pairing error: " + err.message);
     } finally {
       setClaiming(false);
     }
@@ -67,80 +107,91 @@ export default function ScreensPage() {
     try {
       await updateScreenDetails(screenId, screenName, newPlaylistId);
       setScreens(prev => prev.map(s => s.id === screenId ? { ...s, playlistId: newPlaylistId } : s));
+      toast.success("Playlist updated");
     } catch (err: any) {
-      alert("Error updating screen: " + err.message);
+      toast.error("Error updating screen: " + err.message);
     }
   };
 
-  const handleDelete = async (screenId: string) => {
-    if (!confirm("Are you sure you want to PERMANENTLY DELETE this screen? This cannot be undone.")) return;
-    
+  const handleDelete = (screenId: string) => {
+    setDeleteTarget(screenId);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
     try {
-      await deleteScreen(screenId);
-      setScreens(prev => prev.filter(s => s.id !== screenId));
+      await deleteScreen(deleteTarget);
+      setScreens(prev => prev.filter(s => s.id !== deleteTarget));
+      toast.success("Screen deleted");
     } catch (err: any) {
-      alert("Error deleting screen: " + err.message);
+      toast.error("Error deleting screen: " + err.message);
+    } finally {
+      setDeleteTarget(null);
     }
   };
 
-  const handlePurge = async () => {
-    if (!confirm("This will permanently delete all screens that:\n• Are still named \"New TV\"\n• Haven't been seen in 24+ hours\n\nContinue?")) return;
-    
+  const handlePurge = () => {
+    setPurgeOpen(true);
+  };
+
+  const confirmPurge = async () => {
     try {
       setLoading(true);
       const count = await purgeStaleScreens();
       await fetchData();
-      alert(`✅ Purged ${count} stale screen(s).`);
+      toast.success(`Purged ${count} stale screen(s)`);
     } catch (err: any) {
-      alert("Error purging: " + err.message);
+      toast.error("Error purging: " + err.message);
     } finally {
       setLoading(false);
+      setPurgeOpen(false);
     }
   };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight text-white">Screen Management</h2>
-        <p className="text-white/40 mt-1">Sync your Smart TVs by entering the pairing code.</p>
-      </div>
+      <PageHeader
+        title="Screen Management"
+        description="Sync your Smart TVs by entering the pairing code."
+      />
 
-      {/* Bloque de Emparejamiento */}
       <div className="bg-yugo-primary/40 p-6 rounded-xl border border-white/5 shadow-sm backdrop-blur-sm">
         <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
            <span className="text-yugo-accent">🔗</span> Pair New Screen
         </h3>
         <form onSubmit={handleClaim} className="flex flex-col md:flex-row gap-4 items-end">
           <div className="w-full md:w-auto flex-1">
-            <label className="block text-sm font-medium text-white/70 mb-2">TV Code</label>
-            <input
-              type="text"
+            <Input
+              label="TV Code"
               required
               minLength={6}
               maxLength={6}
               placeholder="Ex: 1A2B3C"
               value={pairingCode}
-              onChange={(e) => setPairingCode(e.target.value.toUpperCase())}
-              className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-yugo-accent uppercase tracking-widest font-mono placeholder-white/20"
+              onChange={(e) => {
+                setPairingCode(e.target.value.toUpperCase());
+                if (e.target.value.length === 6) setCodeError("");
+              }}
+              error={codeError}
+              className="uppercase tracking-widest font-mono"
             />
           </div>
           <div className="w-full md:w-auto flex-1">
-            <label className="block text-sm font-medium text-white/70 mb-2">Assigned Name</label>
-            <input
-              type="text"
+            <Input
+              label="Assigned Name"
               required
               placeholder="Ex: Main Reception"
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
-              className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-yugo-accent placeholder-white/20"
             />
           </div>
           <div className="w-full md:w-auto flex-1">
-            <label className="block text-sm font-medium text-white/70 mb-2">Initial Playlist (Optional)</label>
+            <label className="block text-sm font-medium text-white/70 mb-2">Initial Playlist</label>
             <select
               value={selectedPlaylistId}
               onChange={(e) => setSelectedPlaylistId(e.target.value)}
               className="w-full bg-yugo-primary/60 border border-white/10 rounded-lg px-4 py-3 text-white focus:ring-2 focus:ring-yugo-accent appearance-none"
+              aria-label="Select initial playlist"
             >
               <option value="">-- None --</option>
               {playlists.map(pl => (
@@ -148,36 +199,41 @@ export default function ScreensPage() {
               ))}
             </select>
           </div>
-          <button
-            type="submit"
-            disabled={claiming}
-            className="w-full md:w-auto bg-yugo-accent hover:bg-yugo-accent/90 disabled:opacity-50 text-yugo-primary font-bold py-3 px-8 rounded-lg transition-all h-[52px]"
-          >
+          <Button type="submit" disabled={claiming} loading={claiming} className="w-full md:w-auto">
             {claiming ? "Connecting..." : "Pair"}
-          </button>
+          </Button>
         </form>
       </div>
 
-      {/* Lista de Pantallas */}
       <div>
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
           <h3 className="text-xl font-bold">My Active Screens</h3>
-          <button
-            onClick={handlePurge}
-            className="bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 hover:bg-yellow-500/20 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-          >
-            🧹 Purge Stale Screens
-          </button>
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {screens.length > 0 && (
+              <Input
+                placeholder="Search screens..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full sm:w-56"
+                aria-label="Search screens"
+              />
+            )}
+            <Button variant="ghost" onClick={handlePurge}>
+              Purge Stale Screens
+            </Button>
+          </div>
         </div>
         {loading ? (
-          <div className="text-center py-10 text-white/40">Loading screens...</div>
-        ) : screens.length === 0 ? (
+          <LoadingSkeleton variant="card" count={4} />
+        ) : filteredScreens.length === 0 ? (
           <div className="text-center py-16 border-2 border-dashed border-white/5 rounded-xl text-white/20">
-            You have no configured screens. Enter a code above.
+            {searchQuery ? "No screens match your search." : "You have no configured screens. Enter a code above."}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {screens.map(screen => (
+            {filteredScreens.map(screen => {
+              const status = screenStatus(screen);
+              return (
               <div key={screen.id} className="bg-yugo-primary/40 p-5 rounded-xl border border-white/5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 backdrop-blur-sm shadow-sm group">
                 <div className="flex items-center gap-4 w-full sm:w-auto">
                   <div className="h-12 w-12 bg-yugo-primary/60 border border-white/5 rounded-lg flex items-center justify-center text-2xl group-hover:bg-yugo-accent/10 transition-colors">
@@ -185,10 +241,9 @@ export default function ScreensPage() {
                   </div>
                   <div>
                     <h4 className="font-bold text-lg text-white truncate max-w-[200px]">{screen.name}</h4>
-                    {/* Status Placeholder (En el futuro puedes validar lastSeen con Firestore) */}
                     <div className="flex items-center gap-1.5 mt-1">
-                      <div className="w-2 h-2 rounded-full bg-yugo-secondary shadow-[0_0_8px_rgba(80,203,173,0.8)]"></div>
-                      <span className="text-xs text-white/40">Linked</span>
+                      <div className={`w-2 h-2 rounded-full ${status.dot} shadow-[0_0_8px_rgba(80,203,173,0.8)]`} />
+                      <span className={`text-xs ${status.color}`}>{status.label}</span>
                     </div>
                   </div>
                 </div>
@@ -198,24 +253,48 @@ export default function ScreensPage() {
                     value={screen.playlistId || ""}
                     onChange={(e) => handleUpdatePlaylist(screen.id, screen.name, e.target.value)}
                     className="w-full sm:w-48 bg-yugo-primary/60 border border-white/5 rounded-lg px-3 py-2 text-sm text-white focus:ring-2 focus:ring-yugo-accent appearance-none"
+                    aria-label={`Assign playlist for ${screen.name}`}
                   >
                     <option value="">No Playlist</option>
                     {playlists.map(pl => (
                       <option key={pl.id} value={pl.id}>{pl.name}</option>
                     ))}
                   </select>
-                  <button
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => handleDelete(screen.id)}
-                    className="bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20 px-3 py-2 rounded-lg text-sm font-medium transition-colors whitespace-nowrap"
                   >
                     Delete
-                  </button>
+                  </Button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="Delete Screen"
+        message="Are you sure you want to permanently delete this screen? This cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
+
+      <ConfirmDialog
+        open={purgeOpen}
+        title="Purge Stale Screens"
+        message={'This will permanently delete all screens that are still named "New TV" or haven\'t been seen in 24+ hours. Continue?'}
+        confirmText="Purge"
+        cancelText="Cancel"
+        variant="danger"
+        onConfirm={confirmPurge}
+        onCancel={() => setPurgeOpen(false)}
+      />
     </div>
   );
 }
