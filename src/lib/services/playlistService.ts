@@ -1,6 +1,6 @@
 import { db, auth } from "../firebase.config";
-import { 
-  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, serverTimestamp, query, orderBy 
+import {
+  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, serverTimestamp, query, orderBy, Timestamp,
 } from "firebase/firestore";
 
 // Helper to strictly require Auth
@@ -18,8 +18,8 @@ export interface Playlist {
   id: string;
   name: string;
   items: PlaylistItem[];
-  createdAt: any;
-  updatedAt: any;
+  createdAt: Timestamp | null;
+  updatedAt: Timestamp | null;
 }
 
 /**

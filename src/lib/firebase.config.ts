@@ -1,7 +1,8 @@
-import { initializeApp, getApps, getApp } from "firebase/app";
+import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
+import { initializeAppCheck, ReCaptchaV3Provider } from "firebase/app-check";
 
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -9,11 +10,33 @@ const firebaseConfig = {
   projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
-  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-// Singleton pattern to avoid re-initializing apps in Next.js development
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const app: FirebaseApp = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+
+// App Check — runs only in the browser. Requires NEXT_PUBLIC_APP_CHECK_SITE_KEY
+// (reCAPTCHA v3 site key registered in Firebase Console → App Check).
+// In dev, set NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN to bypass with a registered debug token.
+if (typeof window !== "undefined") {
+  const siteKey = process.env.NEXT_PUBLIC_APP_CHECK_SITE_KEY;
+  if (siteKey) {
+    if (process.env.NODE_ENV !== "production" && process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN) {
+      (self as unknown as { FIREBASE_APPCHECK_DEBUG_TOKEN?: string }).FIREBASE_APPCHECK_DEBUG_TOKEN =
+        process.env.NEXT_PUBLIC_APP_CHECK_DEBUG_TOKEN;
+    }
+    try {
+      initializeAppCheck(app, {
+        provider: new ReCaptchaV3Provider(siteKey),
+        isTokenAutoRefreshEnabled: true,
+      });
+    } catch (err) {
+      // Multiple init or unsupported environment — safe to ignore
+      console.warn("App Check init skipped:", err);
+    }
+  }
+}
+
 const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);

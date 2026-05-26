@@ -1,6 +1,6 @@
 import { db, storage, auth } from "../firebase.config";
-import { 
-  collection, addDoc, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp 
+import {
+  collection, addDoc, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
 
@@ -17,6 +17,18 @@ const MAGIC_BYTES: Record<string, number[]> = {
   "video/quicktime": [0x00, 0x00, 0x00, 0x14], // moov box (relaxed check)
   "video/webm": [0x1a, 0x45, 0xdf, 0xa3],
 };
+
+function sanitizeFileName(name: string): string {
+  // Strip directory components and dangerous characters
+  const base = name.split(/[\\/]/).pop() ?? "file";
+  const cleaned = base
+    .normalize("NFKD")
+    .replace(/[^\w.\-]+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^[._]+/, "");
+  const trimmed = cleaned.length > 100 ? cleaned.slice(-100) : cleaned;
+  return trimmed || "file";
+}
 
 async function validateFileType(file: File): Promise<void> {
   if (!ALLOWED_TYPES.includes(file.type)) {
@@ -46,7 +58,7 @@ export interface MediaItem {
   type: "vid" | "img" | "unknown";
   size: number;
   storagePath: string;
-  createdAt: any;
+  createdAt: Timestamp | null;
 }
 
 /**
@@ -65,7 +77,8 @@ export const uploadMedia = async (
   await validateFileType(file);
 
   // 1. Upload to Storage
-  const storagePath = `media/${auth.currentUser?.uid}/${Date.now()}_${file.name}`;
+  const safeName = sanitizeFileName(file.name);
+  const storagePath = `media/${auth.currentUser?.uid}/${Date.now()}_${safeName}`;
   const storageRef = ref(storage, storagePath);
   
   const uploadTask = uploadBytesResumable(storageRef, file);
@@ -122,9 +135,10 @@ export const deleteMedia = async (id: string, storagePath: string): Promise<void
   const storageRef = ref(storage, storagePath);
   try {
     await deleteObject(storageRef);
-  } catch (err: any) {
-    if (err.code !== "storage/object-not-found") {
-      throw err; // Solo lanzamos si falla por algo distinto a que el archivo ya no exista
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code !== "storage/object-not-found") {
+      throw err;
     }
   }
 

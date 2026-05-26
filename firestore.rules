@@ -2,53 +2,92 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    // App Check enforcement helper.
+    // Transitional state: returns true while NEXT_PUBLIC_APP_CHECK_SITE_KEY is
+    // being rolled out in the client. Once App Check is wired up end-to-end,
+    // flip the body to `return request.app != null` to enforce.
+    function hasAppCheck() {
+      return true;
+    }
+
+    function isAdmin() {
+      return request.auth != null;
+    }
+
     // ============================================================
     // SCREENS
-    // - Anyone can create (the player page registers new TVs)
-    // - Anyone can read a single doc by ID (get), but not list all
-    // - Unauthenticated users can ONLY update `lastSeen` and `status`
-    // - Only admin (authenticated) can update other fields or delete
-    // - Rate limit: max 5 screen creations per IP per hour
+    //  - get (public, App Check required): players need to read their own doc by ID
+    //  - list: admin only
+    //  - create (no auth, App Check required): player self-registration
+    //  - update by player: only heartbeat fields, App Check required
+    //  - update / delete by admin: anything goes
     // ============================================================
     match /screens/{screenId} {
-      allow get: if true;
-      allow list: if request.auth != null;
+      allow get: if hasAppCheck();
+      allow list: if isAdmin();
 
-      // Solo el admin (autenticado) puede borrar registros
-      allow delete: if request.auth != null;
+      allow delete: if isAdmin();
 
-      // El player puede registrarse (create) si no está autenticado,
-      // pero solo con el nombre por defecto y campos iniciales.
-      allow create: if request.auth == null
+      allow create: if hasAppCheck()
+        && !isAdmin()
         && request.resource.data.name == "New TV"
         && request.resource.data.status == "online"
         && request.resource.data.pairingCode is string
         && request.resource.data.pairingCode.size() == 6
-        && request.resource.data.keys().hasOnly(['pairingCode', 'name', 'playlistId', 'status', 'lastSeen']);
+        && request.resource.data.playlistId == null
+        && request.resource.data.lastSeen is timestamp
+        && request.resource.data.pairingCodeExpiresAt is timestamp
+        && request.resource.data.keys().hasOnly([
+          'pairingCode', 'pairingCodeExpiresAt', 'name', 'playlistId', 'status', 'lastSeen'
+        ]);
 
-      // Admin puede actualizar todo.
-      // El player NO autenticado SOLO puede actualizar el heartbeat (lastSeen y status).
-      allow update: if request.auth != null
-        || (request.auth == null
-            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'status']));
+      // Admin can update anything.
+      // Unauthenticated player can:
+      //   - update heartbeat (lastSeen + status)
+      //   - refresh an EXPIRED pairing code on an unclaimed screen
+      // Both paths require App Check.
+      allow update: if isAdmin()
+        || (
+          hasAppCheck()
+          && !isAdmin()
+          && (
+            // Heartbeat-only update
+            (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'status'])
+              && request.resource.data.status in ['online', 'offline']
+              && request.resource.data.lastSeen is timestamp
+            )
+            // Pairing-code refresh: only on unclaimed screens whose code already expired
+            || (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['pairingCode', 'pairingCodeExpiresAt', 'lastSeen'])
+              && resource.data.pairingCode != null
+              && resource.data.pairingCodeExpiresAt is timestamp
+              && resource.data.pairingCodeExpiresAt < request.time
+              && request.resource.data.pairingCode is string
+              && request.resource.data.pairingCode.size() == 6
+              && request.resource.data.pairingCodeExpiresAt is timestamp
+              && request.resource.data.pairingCodeExpiresAt > request.time
+            )
+          )
+        );
     }
 
     // ============================================================
-    // PLAYLISTS — get by ID for anyone, list only for admin
+    // PLAYLISTS — get by ID requires App Check, list/write admin only
     // ============================================================
     match /playlists/{playlistId} {
-      allow get: if true;
-      allow list: if request.auth != null;
-      allow create, update, delete: if request.auth != null;
+      allow get: if hasAppCheck();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
 
     // ============================================================
-    // MEDIA — get by ID for anyone, list only for admin
+    // MEDIA — get by ID requires App Check, list/write admin only
     // ============================================================
     match /media/{mediaId} {
-      allow get: if true;
-      allow list: if request.auth != null;
-      allow create, update, delete: if request.auth != null;
+      allow get: if hasAppCheck();
+      allow list: if isAdmin();
+      allow create, update, delete: if isAdmin();
     }
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { errorMessage } from "@/lib/errors";
 import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
 import { createPlaylist, getAllPlaylists, updatePlaylist, deletePlaylist, Playlist } from "@/lib/services/playlistService";
 import { toast } from "sonner";
@@ -284,8 +285,8 @@ export default function PlaylistsConstructorPage() {
       await deletePlaylist(deleteTarget.id);
       await fetchInitialData();
       toast.success("Playlist deleted");
-    } catch (err: any) {
-      toast.error("Error deleting: " + err.message);
+    } catch (err) {
+      toast.error("Error deleting: " + errorMessage(err));
       setLoading(false);
     } finally {
       setDeleteTarget(null);
@@ -333,8 +334,8 @@ export default function PlaylistsConstructorPage() {
       setItemsError("");
       setView("list");
       toast.success(editingPlaylistId ? "Playlist updated successfully" : "Playlist created successfully");
-    } catch (error: any) {
-      toast.error("Error: " + error.message);
+    } catch (error) {
+      toast.error("Error: " + errorMessage(error));
     } finally {
       setSaving(false);
     }

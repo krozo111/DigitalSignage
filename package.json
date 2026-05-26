@@ -15,11 +15,18 @@
     "firebase": "^12.11.0",
     "firebase-admin": "^13.10.0",
     "js-cookie": "^3.0.5",
-    "next": "16.2.1",
+    "next": "^16.2.6",
     "qrcode": "^1.5.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "sonner": "^2.0.7"
+  },
+  "overrides": {
+    "uuid": "^11.1.1",
+    "gaxios": "^7.1.4",
+    "teeny-request": "^10.1.2",
+    "retry-request": "^8.0.2",
+    "postcss": "^8.5.10"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

@@ -1,6 +1,6 @@
 import { db, auth } from "../firebase.config";
-import { 
-  collection, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, serverTimestamp, Timestamp 
+import {
+  collection, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, serverTimestamp, Timestamp,
 } from "firebase/firestore";
 
 // Helper to strictly require Auth
@@ -11,9 +11,10 @@ const assertAuth = () => {
 export interface Screen {
   id: string;
   pairingCode: string | null;
+  pairingCodeExpiresAt?: Timestamp | null;
   name: string;
   playlistId: string | null;
-  lastSeen: any;
+  lastSeen: Timestamp | null;
   status: "online" | "offline";
 }
 
@@ -32,11 +33,19 @@ export const claimScreen = async (pairingCode: string, name: string, playlistId:
   }
 
   const screenDoc = querySnapshot.docs[0];
+  const data = screenDoc.data();
+
+  // Reject expired pairing codes
+  const expiresAt = data.pairingCodeExpiresAt as Timestamp | undefined;
+  if (expiresAt && expiresAt.toMillis() < Date.now()) {
+    throw new Error("Pairing code expired. Refresh the screen to generate a new one.");
+  }
 
   await updateDoc(screenDoc.ref, {
     name,
     playlistId,
     pairingCode: null,
+    pairingCodeExpiresAt: null,
     updatedAt: serverTimestamp(),
   });
 

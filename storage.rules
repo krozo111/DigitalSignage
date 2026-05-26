@@ -2,11 +2,21 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     match /media/{userId}/{allPaths=**} {
+      // Reads are public so the player can render media from getDownloadURL().
+      // Storage objects are referenced by a non-guessable token, so this is
+      // effectively "anyone with the link".
       allow read: if true;
-      allow create, update, delete: if request.auth != null
+
+      allow create, update: if request.auth != null
         && request.auth.uid == userId
         && request.resource.size < 52 * 1024 * 1024
-        && request.resource.contentType.matches('(image|video)/.*');
+        && (
+          request.resource.contentType.matches('image/(jpeg|png|gif|webp)')
+          || request.resource.contentType.matches('video/(mp4|quicktime|webm)')
+        );
+
+      allow delete: if request.auth != null
+        && request.auth.uid == userId;
     }
   }
 }

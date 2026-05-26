@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, useMemo } from "react";
+import { errorMessage } from "@/lib/errors";
 import { uploadMedia, getAllMedia, deleteMedia, MediaItem } from "@/lib/services/mediaService";
 import { getAllPlaylists } from "@/lib/services/playlistService";
 import { toast } from "sonner";
@@ -70,8 +71,8 @@ export default function MediaLibraryPage() {
       await fetchMedia();
       if (fileInputRef.current) fileInputRef.current.value = "";
       toast.success("File uploaded successfully");
-    } catch (error: any) {
-      toast.error(error.message || "Upload failed");
+    } catch (error) {
+      toast.error(errorMessage(error) || "Upload failed");
     } finally {
       setUploading(false);
       setProgress(0);
@@ -120,8 +121,8 @@ export default function MediaLibraryPage() {
       await deleteMedia(deleteTarget.id, deleteTarget.storagePath);
       setMediaList((prev) => prev.filter((item) => item.id !== deleteTarget.id));
       toast.success("File deleted");
-    } catch (error: any) {
-      toast.error("Error deleting: " + error.message);
+    } catch (error) {
+      toast.error("Error deleting: " + errorMessage(error));
     } finally {
       setDeleteTarget(null);
       setDeleteWarning("");

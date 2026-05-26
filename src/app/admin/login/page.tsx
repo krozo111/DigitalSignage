@@ -35,8 +35,7 @@ export default function AdminLogin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       router.push("/admin");
-    } catch (err: any) {
-      console.error(err);
+    } catch {
       setError("Login failed: Check your credentials.");
     } finally {
       setLoading(false);

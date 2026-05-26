@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase.config";
-import { doc, collection, addDoc, onSnapshot, getDoc, setDoc } from "firebase/firestore";
+import { doc, collection, addDoc, onSnapshot, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
 import { PlaybackItem, useSignageLoop } from "@/hooks/useSignageLoop";
 import QRCode from "qrcode";
 
@@ -85,9 +85,11 @@ export default function Home() {
     setRegisterError("");
 
     const newCode = generatePairingCode();
+    const PAIRING_CODE_TTL_MS = 15 * 60 * 1000;
     try {
       const docRef = await addDoc(collection(db, "screens"), {
         pairingCode: newCode,
+        pairingCodeExpiresAt: new Date(Date.now() + PAIRING_CODE_TTL_MS),
         name: "New TV",
         playlistId: null,
         status: "online",
@@ -124,7 +126,8 @@ export default function Home() {
         const currentResolveId = resolveIdRef.current;
 
         const plData = plSnap.data();
-        const plItems = plData.items || [];
+        const plItems: Array<{ mediaId: string; duration: number; order: number }> =
+          [...(plData.items || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
         (async () => {
           const resolvedItems: PlaybackItem[] = [];
@@ -146,7 +149,6 @@ export default function Home() {
           }
 
           if (currentResolveId === resolveIdRef.current) {
-            resolvedItems.sort((a: any, b: any) => a.order - b.order);
             setMediaItems(resolvedItems);
             localStorage.setItem("dsf_offline_playlist", JSON.stringify(resolvedItems));
             setShowUpdateBadge(true);
@@ -185,7 +187,20 @@ export default function Home() {
 
       setNetworkError(false);
       const data = snap.data();
-      setPairingCode(data.pairingCode || null);
+
+      // Auto-refresh pairing code if expired and still unclaimed
+      const codeExpiry = data.pairingCodeExpiresAt as Timestamp | undefined;
+      if (data.pairingCode && codeExpiry && codeExpiry.toMillis() < Date.now()) {
+        const PAIRING_CODE_TTL_MS = 15 * 60 * 1000;
+        const fresh = generatePairingCode();
+        updateDoc(doc(db, "screens", snap.id), {
+          pairingCode: fresh,
+          pairingCodeExpiresAt: new Date(Date.now() + PAIRING_CODE_TTL_MS),
+          lastSeen: new Date(),
+        }).catch((err) => console.warn("Failed to refresh pairing code:", err));
+      } else {
+        setPairingCode(data.pairingCode || null);
+      }
 
       const newPlaylistId = data.playlistId || null;
 

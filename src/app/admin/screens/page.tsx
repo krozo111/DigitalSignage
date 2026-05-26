@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
+import { errorMessage } from "@/lib/errors";
 import {
   claimScreen,
   getAllScreens,
@@ -26,7 +27,7 @@ function screenStatus(screen: Screen): { label: string; color: string; dot: stri
   const lastSeen = screen.lastSeen;
   if (!lastSeen) return { label: "Unknown", color: "text-white/40", dot: "bg-white/20" };
 
-  const lastSeenMs = lastSeen.toMillis ? lastSeen.toMillis() : new Date(lastSeen).getTime();
+  const lastSeenMs = lastSeen.toMillis();
   const diff = now - lastSeenMs;
 
   if (diff < STALE_THRESHOLD_MS) return { label: "Online", color: "text-yugo-secondary", dot: "bg-yugo-secondary" };
@@ -101,8 +102,8 @@ export default function ScreensPage() {
       setNameError("");
       await fetchData();
       toast.success("Screen paired successfully");
-    } catch (err: any) {
-      toast.error("Pairing error: " + err.message);
+    } catch (err) {
+      toast.error("Pairing error: " + errorMessage(err));
     } finally {
       setClaiming(false);
     }
@@ -113,8 +114,8 @@ export default function ScreensPage() {
       await updateScreenDetails(screenId, screenName, newPlaylistId);
       setScreens(prev => prev.map(s => s.id === screenId ? { ...s, playlistId: newPlaylistId } : s));
       toast.success("Playlist updated");
-    } catch (err: any) {
-      toast.error("Error updating screen: " + err.message);
+    } catch (err) {
+      toast.error("Error updating screen: " + errorMessage(err));
     }
   };
 
@@ -128,8 +129,8 @@ export default function ScreensPage() {
       await deleteScreen(deleteTarget);
       setScreens(prev => prev.filter(s => s.id !== deleteTarget));
       toast.success("Screen deleted");
-    } catch (err: any) {
-      toast.error("Error deleting screen: " + err.message);
+    } catch (err) {
+      toast.error("Error deleting screen: " + errorMessage(err));
     } finally {
       setDeleteTarget(null);
     }
@@ -145,8 +146,8 @@ export default function ScreensPage() {
       const count = await purgeStaleScreens();
       await fetchData();
       toast.success(`Purged ${count} stale screen(s)`);
-    } catch (err: any) {
-      toast.error("Error purging: " + err.message);
+    } catch (err) {
+      toast.error("Error purging: " + errorMessage(err));
     } finally {
       setLoading(false);
       setPurgeOpen(false);
