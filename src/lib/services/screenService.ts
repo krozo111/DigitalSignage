@@ -85,6 +85,7 @@ export const deleteScreen = async (id: string): Promise<void> => {
  * Checks if a screen document exists in Firestore.
  */
 export const screenExists = async (id: string): Promise<boolean> => {
+  assertAuth();
   const screenRef = doc(db, "screens", id);
   const snap = await getDoc(screenRef);
   return snap.exists();

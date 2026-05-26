@@ -4,14 +4,20 @@ import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase.config";
 import { doc, collection, addDoc, onSnapshot, getDoc, setDoc } from "firebase/firestore";
 import { PlaybackItem, useSignageLoop } from "@/hooks/useSignageLoop";
-import { useRouter } from "next/navigation";
+import QRCode from "qrcode";
 
 function generatePairingCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  const array = new Uint8Array(6);
+  crypto.getRandomValues(array);
+  let code = "";
+  for (let i = 0; i < 6; i++) {
+    code += chars[array[i] % chars.length];
+  }
+  return code;
 }
 
 export default function Home() {
-  const router = useRouter();
   const [screenId, setScreenId] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [mediaItems, setMediaItems] = useState<PlaybackItem[]>([]);
@@ -25,20 +31,23 @@ export default function Home() {
   const [fadingItem, setFadingItem] = useState<PlaybackItem | null>(null);
   const [showUpdateBadge, setShowUpdateBadge] = useState(false);
 
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  // Keyboard shortcut to enter Admin Mode
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === 'a' && e.ctrlKey && e.shiftKey) {
-        router.push('/admin');
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [router]);
+    if (pairingCode) {
+      QRCode.toDataURL(pairingCode, { width: 300, margin: 1 })
+        .then(setQrDataUrl)
+        .catch(console.error);
+    } else {
+      setQrDataUrl("");
+    }
+  }, [pairingCode]);
+
+
 
   // 1. Screen setup: Recover existing identity or prompt for registration
   useEffect(() => {
@@ -343,12 +352,7 @@ export default function Home() {
   return (
     <div className="relative h-screen w-screen bg-black overflow-hidden select-none">
       
-      {/* Hidden Admin Access (Top Left Corner) */}
-      <div 
-        className="absolute top-0 left-0 w-16 h-16 z-50 cursor-pointer opacity-0"
-        onDoubleClick={() => router.push('/admin')}
-        title="Double click to go to Admin"
-      />
+
 
       {/* Status overlay */}
       {!needsRegistration && !pairingCode && (
@@ -406,11 +410,17 @@ export default function Home() {
             >
               {pairingCode}
             </div>
-            <img
-              src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${pairingCode}`}
-              alt={`QR code for pairing code ${pairingCode}`}
-              className="rounded-xl bg-white p-2 w-32 h-32 md:w-40 md:h-40"
-            />
+            <div className="flex items-center justify-center rounded-xl bg-white p-2 w-32 h-32 md:w-40 md:h-40">
+              {qrDataUrl ? (
+                <img
+                  src={qrDataUrl}
+                  alt={`QR code for pairing code ${pairingCode}`}
+                  className="w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
+              )}
+            </div>
           </div>
           <p className="text-slate-500 text-sm mt-6">Scan the QR code or enter the code manually</p>
         </div>

@@ -13,8 +13,8 @@ export default function AdminLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  
-  const { adminEmail, user } = useAuth();
+
+  const { user } = useAuth();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -32,17 +32,9 @@ export default function AdminLogin() {
     setLoading(true);
     setError("");
 
-    // Verificación preliminar antes de enviar a Firebase
-    if (adminEmail && email !== adminEmail) {
-      setError("Access denied: Email does not belong to administrator.");
-      setLoading(false);
-      return;
-    }
-
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      // El AuthContext interceptará este estado, verificará de nuevo, y seteará la cookie de sesión.
-      router.push("/admin"); // Redireccionar al dashboard
+      router.push("/admin");
     } catch (err: any) {
       console.error(err);
       setError("Login failed: Check your credentials.");

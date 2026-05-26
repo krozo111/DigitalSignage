@@ -6,6 +6,34 @@ import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebas
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
+const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "video/mp4", "video/quicktime", "video/webm"];
+
+const MAGIC_BYTES: Record<string, number[]> = {
+  "image/jpeg": [0xff, 0xd8, 0xff],
+  "image/png": [0x89, 0x50, 0x4e, 0x47],
+  "image/gif": [0x47, 0x49, 0x46, 0x38],
+  "image/webp": [0x52, 0x49, 0x46, 0x46],
+  "video/mp4": [0x00, 0x00, 0x00, 0x18], // ftyp box (relaxed check)
+  "video/quicktime": [0x00, 0x00, 0x00, 0x14], // moov box (relaxed check)
+  "video/webm": [0x1a, 0x45, 0xdf, 0xa3],
+};
+
+async function validateFileType(file: File): Promise<void> {
+  if (!ALLOWED_TYPES.includes(file.type)) {
+    throw new Error(`Tipo de archivo no permitido: ${file.type}. Solo se aceptan imágenes y videos.`);
+  }
+
+  const magic = MAGIC_BYTES[file.type];
+  if (magic) {
+    const buffer = await file.slice(0, magic.length).arrayBuffer();
+    const bytes = new Uint8Array(buffer);
+    const matches = magic.every((b, i) => bytes[i] === b);
+    if (!matches) {
+      throw new Error(`El archivo no coincide con su tipo declarado (${file.type}).`);
+    }
+  }
+}
+
 // Helper to strictly require Auth
 const assertAuth = () => {
   if (!auth.currentUser) throw new Error("Acceso denegado: Se requiere autenticación.");
@@ -33,6 +61,8 @@ export const uploadMedia = async (
   if (file.size > MAX_FILE_SIZE) {
     throw new Error(`El archivo ${file.name} excede el límite de 50MB.`);
   }
+
+  await validateFileType(file);
 
   // 1. Upload to Storage
   const storagePath = `media/${auth.currentUser?.uid}/${Date.now()}_${file.name}`;
