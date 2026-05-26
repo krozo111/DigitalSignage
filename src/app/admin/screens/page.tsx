@@ -44,6 +44,7 @@ export default function ScreensPage() {
   const [selectedPlaylistId, setSelectedPlaylistId] = useState("");
   const [claiming, setClaiming] = useState(false);
   const [codeError, setCodeError] = useState("");
+  const [nameError, setNameError] = useState("");
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [purgeOpen, setPurgeOpen] = useState(false);
@@ -84,16 +85,20 @@ export default function ScreensPage() {
       setCodeError("Code must be exactly 6 characters");
       return;
     }
-    if (!newName.trim()) return;
+    if (!newName.trim()) {
+      setNameError("Screen name is required");
+      return;
+    }
 
     try {
       setClaiming(true);
-      await claimScreen(pairingCode, newName, selectedPlaylistId || "");
+      await claimScreen(pairingCode, newName, selectedPlaylistId || null);
 
       setPairingCode("");
       setNewName("");
       setSelectedPlaylistId("");
       setCodeError("");
+      setNameError("");
       await fetchData();
       toast.success("Screen paired successfully");
     } catch (err: any) {
@@ -182,7 +187,11 @@ export default function ScreensPage() {
               required
               placeholder="Ex: Main Reception"
               value={newName}
-              onChange={(e) => setNewName(e.target.value)}
+              onChange={(e) => {
+                setNewName(e.target.value);
+                if (e.target.value.trim()) setNameError("");
+              }}
+              error={nameError}
             />
           </div>
           <div className="w-full md:w-auto flex-1">

@@ -88,6 +88,7 @@ export default function Home() {
       localStorage.setItem("dsf_screen_id", docRef.id);
       setScreenId(docRef.id);
       setPairingCode(newCode);
+      setNeedsRegistration(false);
     } catch (err) {
       console.error("Failed to register screen:", err);
       setRegisterError("Could not connect. Check your internet and try again.");

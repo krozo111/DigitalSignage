@@ -20,7 +20,7 @@ export interface Screen {
 /**
  * Claims a screen using its pairingCode, assigning it a name and optional playlist.
  */
-export const claimScreen = async (pairingCode: string, name: string, playlistId: string): Promise<string> => {
+export const claimScreen = async (pairingCode: string, name: string, playlistId: string | null): Promise<string> => {
   assertAuth();
 
   const screensRef = collection(db, "screens");
