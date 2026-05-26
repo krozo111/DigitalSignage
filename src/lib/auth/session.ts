@@ -28,12 +28,18 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   try {
     const decoded = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
 
-    if (decoded.email !== adminEmail || decoded.email_verified === false) {
+    if (decoded.email !== adminEmail) {
+      if (process.env.NODE_ENV !== "production") {
+        console.warn("[auth] email mismatch:", decoded.email, "vs", adminEmail);
+      }
       return null;
     }
 
     return { uid: decoded.uid, email: decoded.email };
-  } catch {
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[auth] verifySessionCookie failed:", (err as Error).message);
+    }
     return null;
   }
 }
