@@ -9,9 +9,11 @@ export function Toaster() {
       position="bottom-right"
       toastOptions={{
         style: {
-          background: "#2B1F41",
-          border: "1px solid rgba(255,255,255,0.1)",
-          color: "#ffffff",
+          background: "var(--color-surface-2)",
+          border: "1px solid var(--color-border-strong)",
+          color: "var(--color-fg)",
+          boxShadow:
+            "0 20px 50px -20px oklch(0 0 0 / 0.7), 0 0 0 1px oklch(0.985 0.004 80 / 0.03) inset",
         },
       }}
     />

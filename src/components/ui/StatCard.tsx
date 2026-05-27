@@ -6,17 +6,18 @@ interface StatCardProps {
   label: string;
   value: ReactNode;
   icon: ComponentType<LucideProps>;
-  iconTone?: "accent" | "success" | "warning" | "danger" | "muted";
+  iconTone?: "accent" | "success" | "warning" | "danger" | "info" | "muted";
   meta?: ReactNode;
   footer?: { label: string; href: string };
 }
 
 const iconToneClass: Record<NonNullable<StatCardProps["iconTone"]>, string> = {
-  accent: "text-accent",
-  success: "text-success",
-  warning: "text-warning",
-  danger: "text-danger",
-  muted: "text-fg-muted",
+  accent:  "text-accent  bg-accent-soft",
+  success: "text-success bg-success-soft",
+  warning: "text-warning bg-warning-soft",
+  danger:  "text-danger  bg-danger-soft",
+  info:    "text-info    bg-info-soft",
+  muted:   "text-fg-muted bg-fg/[0.06]",
 };
 
 export function StatCard({
@@ -28,26 +29,32 @@ export function StatCard({
   footer,
 }: StatCardProps) {
   return (
-    <div className="bg-surface-1 p-6 rounded-xl border border-border shadow-sm flex flex-col justify-between backdrop-blur-sm">
+    <div className="bg-surface-1 p-6 rounded-xl border border-border shadow-[0_1px_0_oklch(1_0_0/0.04)_inset,0_12px_28px_-16px_oklch(0_0_0/0.6)] flex flex-col justify-between gap-5">
       <div>
-        <h3 className="text-fg-muted text-sm font-medium flex items-center gap-2">
-          <Icon className={iconToneClass[iconTone]} /> {label}
+        <h3 className="flex items-center gap-2.5">
+          <span
+            className={`inline-flex h-7 w-7 items-center justify-center rounded-lg ${iconToneClass[iconTone]}`}
+            aria-hidden="true"
+          >
+            <Icon size={16} />
+          </span>
+          <span className="text-eyebrow text-fg-muted">{label}</span>
         </h3>
-        <div className="mt-2">
+        <div className="mt-4">
           {typeof value === "string" || typeof value === "number" ? (
-            <span className="text-4xl font-bold text-fg">{value}</span>
+            <span className="text-stat text-fg">{value}</span>
           ) : (
             value
           )}
         </div>
-        {meta && <div className="mt-2 space-y-1">{meta}</div>}
+        {meta && <div className="mt-3 space-y-1.5">{meta}</div>}
       </div>
       {footer && (
         <Link
           href={footer.href}
-          className="text-accent text-sm mt-6 hover:text-accent/80 font-medium"
+          className="text-label text-accent hover:text-accent/80 inline-flex items-center gap-1"
         >
-          {footer.label} →
+          {footer.label} <span aria-hidden="true">→</span>
         </Link>
       )}
     </div>

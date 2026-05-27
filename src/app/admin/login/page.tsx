@@ -53,23 +53,28 @@ export default function AdminLogin() {
     }
   };
 
-  if (!isMounted) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-fg-subtle">Loading...</div>;
+  if (!isMounted) return <div aria-hidden="true" className="min-h-screen" />;
 
   return (
-    <div className="flex bg-yugo-primary justify-center items-center min-h-screen">
-      <div className="bg-surface-1 p-8 rounded-2xl shadow-xl w-full max-w-md border border-border backdrop-blur-sm">
-        <h1 className="text-3xl font-bold text-center text-fg mb-6 tracking-tight">
+    <div className="flex justify-center items-center min-h-screen px-4">
+      <div className="bg-surface-1 px-7 py-9 sm:px-9 sm:py-10 rounded-2xl shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)] w-full max-w-md border border-border-strong">
+        <h1 className="text-display text-center text-fg mb-1">
           <span className="text-accent">Yugo</span> Signage
         </h1>
-        {error && (
-          <div className="bg-danger-soft border border-danger text-danger p-3 rounded-md mb-6 text-sm text-center">
-            {error}
-          </div>
-        )}
-        <form onSubmit={handleLogin} className="space-y-6">
+        <p className="text-meta text-fg-subtle text-center mb-8">Sign in to manage your screens.</p>
+        <div role="alert" aria-live="polite" aria-atomic="true" className="min-h-0">
+          {error && (
+            <div className="bg-danger-soft border border-danger/40 text-danger px-3 py-2.5 rounded-md mb-6 text-label">
+              {error}
+            </div>
+          )}
+        </div>
+        <form onSubmit={handleLogin} className="space-y-5" noValidate>
           <Input
             label="Email"
             type="email"
+            autoComplete="username"
+            autoFocus
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="admin@example.com"
@@ -78,6 +83,7 @@ export default function AdminLogin() {
           <Input
             label="Password"
             type="password"
+            autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
@@ -90,7 +96,7 @@ export default function AdminLogin() {
             className="w-full"
             size="md"
           >
-            {loading ? "Signing in..." : "Enter Dashboard"}
+            {loading ? "Signing in" : "Enter dashboard"}
           </Button>
         </form>
       </div>

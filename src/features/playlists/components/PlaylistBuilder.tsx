@@ -113,7 +113,7 @@ export function PlaylistBuilder({
       </div>
 
       <Button
-        variant="secondary"
+        variant="primary"
         size="lg"
         disabled={saving || items.length === 0 || !name}
         loading={saving}

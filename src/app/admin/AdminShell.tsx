@@ -50,11 +50,11 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
     <UnsavedChangesProvider>
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-accent focus:text-on-accent focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[60] focus:bg-accent focus:text-on-accent focus:text-label focus:font-semibold focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-[0_8px_24px_-8px_oklch(0_0_0/0.6)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
         Skip to main content
       </a>
-      <div className="flex h-screen bg-yugo-primary text-fg flex-col md:flex-row">
+      <div className="flex h-screen text-fg flex-col md:flex-row">
         <Sidebar
           collapsed={collapsed}
           onToggle={toggle}
@@ -69,7 +69,11 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
             onLogout={handleLogout}
             onOpenDrawer={() => setDrawerOpen(true)}
           />
-          <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 md:p-8 focus:outline-none">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-10 focus:outline-none"
+          >
             <div className="max-w-6xl mx-auto">{children}</div>
           </main>
         </div>

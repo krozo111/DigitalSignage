@@ -76,7 +76,7 @@ export function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm animate-fade-in"
       onClick={onCancel}
       role="presentation"
     >
@@ -85,19 +85,18 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-surface-strong border border-border-strong rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl backdrop-blur-sm"
+        className="bg-surface-2 border border-border-strong rounded-xl p-6 max-w-md w-full mx-4 shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)]"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={titleId} className="text-lg font-semibold text-fg mb-2">{title}</h3>
-        <p className="text-fg-muted text-sm mb-6">{message}</p>
+        <h3 id={titleId} className="text-h2 text-fg mb-2">{title}</h3>
+        <p className="text-fg-muted text-label mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
-          <Button variant="ghost" onClick={onCancel} aria-label={cancelText}>
+          <Button variant="ghost" onClick={onCancel}>
             {cancelText}
           </Button>
           <Button
             variant={variant === "danger" ? "danger" : "primary"}
             onClick={onConfirm}
-            aria-label={confirmText}
           >
             {confirmText}
           </Button>

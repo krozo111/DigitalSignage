@@ -23,22 +23,33 @@ export function EmptyState({
   const isInteractive = typeof onClick === "function";
   const baseClasses =
     variant === "dashed"
-      ? "border-2 border-dashed border-border rounded-xl"
-      : "border border-border rounded-xl bg-surface-1 backdrop-blur-sm";
+      ? "border-2 border-dashed border-border-strong rounded-xl"
+      : "border border-border rounded-xl bg-surface-1";
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!isInteractive) return;
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.();
+    }
+  };
 
   return (
     <div
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       role={isInteractive ? "button" : undefined}
       tabIndex={isInteractive ? 0 : undefined}
-      className={`flex flex-col items-center justify-center text-center py-16 px-6 text-fg-subtle transition-colors ${baseClasses} ${
-        isInteractive ? "cursor-pointer hover:border-border-strong hover:text-fg-muted" : ""
+      className={`flex flex-col items-center justify-center text-center py-16 px-6 text-fg-subtle transition-colors focus:outline-none ${baseClasses} ${
+        isInteractive
+          ? "cursor-pointer hover:border-border-strong hover:text-fg-muted focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          : ""
       } ${className}`}
     >
-      {Icon && <Icon size={40} className="mb-3 text-fg-disabled" />}
-      <p className="font-medium text-fg-muted">{title}</p>
-      {description && <p className="text-sm mt-1 max-w-sm">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+      {Icon && <Icon size={36} className="mb-3 text-fg-disabled" strokeWidth={1.5} />}
+      <p className="text-label font-medium text-fg-muted">{title}</p>
+      {description && <p className="text-meta mt-1 max-w-sm leading-relaxed">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   );
 }

@@ -42,28 +42,29 @@ export function UserMenu({ email, onLogout, variant = "expanded" }: UserMenuProp
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`Account menu for ${email}`}
-        className={`flex items-center gap-3 w-full rounded-lg hover:bg-white/5 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-          isCompact ? "justify-center p-1" : "px-2 py-2"
+        className={`flex items-center gap-3 rounded-lg hover:bg-fg/[0.05] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+          isCompact ? "h-11 w-11 justify-center" : "w-full px-2 py-2"
         }`}
       >
-        <div className="h-8 w-8 rounded-full bg-accent text-on-accent font-bold flex items-center justify-center flex-shrink-0">
+        <div className="h-8 w-8 rounded-full bg-accent-soft text-accent text-label font-semibold flex items-center justify-center flex-shrink-0 ring-1 ring-accent/25">
           {initial}
         </div>
         {!isCompact && (
-          <span className="text-sm text-fg-muted truncate flex-1 text-left">{email}</span>
+          <span className="text-label text-fg-muted truncate flex-1 text-left">{email}</span>
         )}
       </button>
 
       {open && (
         <div
           role="menu"
-          className={`absolute z-50 w-56 bg-surface-strong border border-border-strong rounded-lg shadow-lg p-1 backdrop-blur-md animate-fade-in ${
+          aria-label="Account menu"
+          className={`absolute z-50 w-60 bg-surface-2 border border-border-strong rounded-lg shadow-[0_24px_60px_-20px_oklch(0_0_0/0.7)] p-1.5 animate-fade-in ${
             isCompact ? "right-0 top-full mt-2" : "bottom-full left-0 right-0 mb-2"
           }`}
         >
-          <div className="px-3 py-2 text-xs text-fg-subtle border-b border-border">
-            Signed in as
-            <div className="text-fg truncate mt-0.5">{email}</div>
+          <div className="px-3 py-2.5 border-b border-border">
+            <div className="text-eyebrow text-fg-subtle">Signed in as</div>
+            <div className="text-label text-fg truncate mt-1">{email}</div>
           </div>
           <button
             type="button"
@@ -72,9 +73,9 @@ export function UserMenu({ email, onLogout, variant = "expanded" }: UserMenuProp
               setOpen(false);
               onLogout();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 mt-1 text-left text-sm text-danger hover:bg-danger-soft rounded transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-left text-label text-danger hover:bg-danger-soft rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
           >
-            <LogoutIcon size={16} /> Logout
+            <LogoutIcon size={16} /> Sign out
           </button>
         </div>
       )}

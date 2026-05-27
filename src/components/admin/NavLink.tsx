@@ -36,12 +36,14 @@ export function NavLink({ href, label, icon: Icon, collapsed = false, onNavigate
       onClick={handleClick}
       aria-current={isActive ? "page" : undefined}
       title={collapsed ? label : undefined}
-      className={`flex items-center gap-3 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
-        collapsed ? "justify-center px-2 py-3" : "px-3 py-2.5"
+      className={`relative flex items-center gap-3 rounded-lg text-label transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+        collapsed
+          ? "justify-center px-2 h-10"
+          : "px-3 min-h-11 md:min-h-10"
       } ${
         isActive
-          ? "bg-accent-soft text-accent font-medium"
-          : "text-fg-muted hover:bg-white/5 hover:text-fg"
+          ? "bg-info-soft text-info ring-1 ring-info/20"
+          : "text-fg-muted hover:bg-fg/[0.04] hover:text-fg"
       }`}
     >
       <Icon />

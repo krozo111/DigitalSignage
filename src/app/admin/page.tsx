@@ -26,7 +26,7 @@ export default function AdminDashboardHome() {
     getAllMedia,
   );
 
-  const loading = screensLoading && playlistsLoading && mediaLoading;
+  const loading = screensLoading || playlistsLoading || mediaLoading;
 
   const linkedScreens = screens.filter(s => s.pairingCode === null).length;
   const onlineScreens = screens.filter(s => s.status === "online").length;
@@ -52,8 +52,8 @@ export default function AdminDashboardHome() {
       />
 
       <PageHeader
-        title="General Dashboard"
-        description="Overview of your screen network&apos;s current state."
+        title="Dashboard"
+        description="A snapshot of your screen network: what's online, what needs a playlist, what's in the library."
       />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -62,21 +62,21 @@ export default function AdminDashboardHome() {
           icon={ScreenIcon}
           iconTone="success"
           value={
-            <div className="flex items-end gap-3">
-              <span className="text-4xl font-bold text-fg">{linkedScreens}</span>
-              <span className="text-fg-disabled mb-1">/ {screens.length} registrations</span>
+            <div className="flex items-baseline gap-2.5">
+              <span className="text-stat text-fg">{linkedScreens}</span>
+              <span className="text-meta text-fg-subtle tnum">/ {screens.length} registered</span>
             </div>
           }
           meta={
             <>
               {onlineScreens > 0 && (
-                <p className="text-success text-xs flex items-center gap-1">
+                <p className="text-meta text-success flex items-center gap-1.5 tnum">
                   <span className="inline-block w-1.5 h-1.5 rounded-full bg-success" />
                   {onlineScreens} currently online
                 </p>
               )}
               {missingPlaylistScreens > 0 && (
-                <p className="text-accent text-xs flex items-center gap-1.5">
+                <p className="text-meta text-warning flex items-center gap-1.5 tnum">
                   <AlertIcon size={14} /> {missingPlaylistScreens} without assigned playlist
                 </p>
               )}
@@ -88,7 +88,7 @@ export default function AdminDashboardHome() {
         <StatCard
           label="Playlists"
           icon={PlaylistIcon}
-          iconTone="accent"
+          iconTone="info"
           value={playlists.length}
           footer={{ label: "Create Playlists", href: "/admin/playlists" }}
         />
@@ -99,7 +99,7 @@ export default function AdminDashboardHome() {
           iconTone="muted"
           value={mediaItems.length}
           meta={
-            <p className="text-fg-disabled text-xs">
+            <p className="text-meta text-fg-subtle tnum">
               Total Size: ~{totalSizeMB} MB
             </p>
           }
@@ -107,17 +107,23 @@ export default function AdminDashboardHome() {
         />
       </div>
 
-      <div className="bg-gradient-to-r from-yugo-vibrant/20 to-surface-1 border border-border-strong p-6 rounded-xl backdrop-blur-sm">
-        <h3 className="text-lg font-bold text-accent mb-2 flex items-center gap-2">
-          <RocketIcon /> How to start a screen?
-        </h3>
-        <ol className="list-decimal list-inside text-fg-muted space-y-2 text-sm leading-relaxed">
-          <li>Upload images and videos (mp4) in the <Link href="/admin/media" className="text-accent hover:underline">Media</Link> section.</li>
-          <li>Group these resources by ordering them in <Link href="/admin/playlists" className="text-accent hover:underline">Playlists</Link>.</li>
-          <li>Open the <b>/player</b> app on your Smart TV to see the giant random code.</li>
-          <li>Enter that code in the <Link href="/admin/screens" className="text-accent hover:underline">Screens</Link> tab and associate the playlist you created. Done!</li>
+      <section
+        aria-labelledby="how-to-start"
+        className="border border-border rounded-xl bg-surface-1 px-6 py-6 shadow-[0_1px_0_oklch(1_0_0/0.04)_inset]"
+      >
+        <div className="flex items-center gap-2 mb-4">
+          <RocketIcon size={16} className="text-fg-subtle" />
+          <h2 id="how-to-start" className="text-eyebrow text-fg-muted">
+            How to start a screen
+          </h2>
+        </div>
+        <ol className="text-fg-muted text-label leading-relaxed max-w-[68ch] space-y-2 list-decimal list-inside marker:text-fg-subtle marker:font-medium">
+          <li>Upload images and videos in the <Link href="/admin/media" className="text-accent hover:text-accent-strong underline-offset-2 hover:underline">Media</Link> section.</li>
+          <li>Group them into <Link href="/admin/playlists" className="text-accent hover:text-accent-strong underline-offset-2 hover:underline">Playlists</Link> in the order you want them to play.</li>
+          <li>Open <code className="text-fg font-mono text-[0.875em] bg-fg/[0.06] px-1.5 py-0.5 rounded">/player</code> on the Smart TV. A pairing code appears.</li>
+          <li>Enter the code in <Link href="/admin/screens" className="text-accent hover:text-accent-strong underline-offset-2 hover:underline">Screens</Link> and assign a playlist.</li>
         </ol>
-      </div>
+      </section>
     </div>
   );
 }

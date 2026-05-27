@@ -1,0 +1,24 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+
+  "formatter": {
+    "prettier": {
+      "extensions": [".ts", ".tsx", ".js", ".jsx", ".json", ".css"]
+    }
+  },
+
+  "lsp": true,
+
+  "instructions": ["PROJECT_CONTEXT.md", "AGENTS.md"],
+
+  "watcher": {
+    "ignore": ["node_modules/**", ".next/**", ".git/**", "dist/**"]
+  },
+
+  "plugin": ["superpowers@git+https://github.com/obra/superpowers.git"],
+
+  "permission": {
+    "edit": "ask",
+    "bash": "ask"
+  }
+}

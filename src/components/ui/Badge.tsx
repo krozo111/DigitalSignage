@@ -1,6 +1,6 @@
 import { HTMLAttributes } from "react";
 
-type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger";
+type BadgeTone = "neutral" | "accent" | "success" | "warning" | "danger" | "info";
 type BadgeSize = "sm" | "md";
 
 interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
@@ -9,12 +9,13 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
   dot?: boolean;
 }
 
-const toneStyles: Record<BadgeTone, { text: string; dot: string; bg: string }> = {
-  neutral: { text: "text-fg-subtle", dot: "bg-fg-disabled", bg: "bg-fg-disabled/10" },
-  accent:  { text: "text-accent",    dot: "bg-accent",      bg: "bg-accent-soft" },
-  success: { text: "text-success",   dot: "bg-success",     bg: "bg-success/10" },
-  warning: { text: "text-warning",   dot: "bg-warning",     bg: "bg-warning/10" },
-  danger:  { text: "text-danger",    dot: "bg-danger",      bg: "bg-danger-soft" },
+const toneStyles: Record<BadgeTone, { text: string; dot: string; bg: string; ring: string }> = {
+  neutral: { text: "text-fg-muted",  dot: "bg-fg-subtle",  bg: "bg-fg/[0.06]",   ring: "ring-border-strong" },
+  accent:  { text: "text-accent",    dot: "bg-accent",     bg: "bg-accent-soft", ring: "ring-accent/25" },
+  success: { text: "text-success",   dot: "bg-success",    bg: "bg-success-soft",ring: "ring-success/25" },
+  warning: { text: "text-warning",   dot: "bg-warning",    bg: "bg-warning-soft",ring: "ring-warning/25" },
+  danger:  { text: "text-danger",    dot: "bg-danger",     bg: "bg-danger-soft", ring: "ring-danger/25" },
+  info:    { text: "text-info",      dot: "bg-info",       bg: "bg-info-soft",   ring: "ring-info/25" },
 };
 
 const sizeStyles: Record<BadgeSize, string> = {
@@ -33,7 +34,7 @@ export function Badge({
   const styles = toneStyles[tone];
   return (
     <span
-      className={`inline-flex items-center rounded-full font-medium ${styles.text} ${styles.bg} ${sizeStyles[size]} ${className}`}
+      className={`inline-flex items-center rounded-full font-medium ring-1 ring-inset ${styles.ring} ${styles.text} ${styles.bg} ${sizeStyles[size]} ${className}`}
       {...props}
     >
       {dot && (

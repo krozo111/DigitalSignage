@@ -6,16 +6,18 @@ interface RegisterScreenProps {
 
 export function RegisterScreen({ registering, error, onRegister }: RegisterScreenProps) {
   return (
-    <div className="flex flex-col h-full w-full items-center justify-center text-fg gap-6 px-6">
-      <div className="text-center">
-        <h1 className="text-3xl md:text-4xl font-bold mb-2">Digital Signage Player</h1>
-        <p className="text-fg-muted text-lg">No screen is registered on this device.</p>
+    <div className="flex flex-col h-full w-full items-center justify-center text-fg gap-8 px-6">
+      <div className="text-center max-w-md">
+        <h1 className="text-display text-fg">
+          <span className="text-accent">Yugo</span> Signage Player
+        </h1>
+        <p className="text-fg-muted text-label mt-3">No screen is registered on this device.</p>
       </div>
 
       {error && (
         <div
           role="alert"
-          className="bg-danger-soft border border-danger/30 text-danger px-4 py-3 rounded-lg text-sm max-w-md"
+          className="bg-danger-soft border border-danger/40 text-danger px-4 py-3 rounded-lg text-label max-w-md"
         >
           {error}
         </div>
@@ -25,14 +27,13 @@ export function RegisterScreen({ registering, error, onRegister }: RegisterScree
         type="button"
         onClick={onRegister}
         disabled={registering}
-        className="bg-accent hover:bg-accent/90 disabled:opacity-50 text-on-accent font-bold py-4 px-10 rounded-2xl text-xl transition-all border-none cursor-pointer shadow-[0_0_30px_rgba(239,184,81,0.3)] focus:outline-none focus-visible:ring-4 focus-visible:ring-accent/40"
+        className="bg-accent hover:bg-accent-strong disabled:opacity-50 disabled:cursor-not-allowed text-on-accent font-semibold py-3.5 px-8 rounded-xl text-base transition-colors border-none cursor-pointer shadow-[0_1px_0_oklch(1_0_0/0.25)_inset,0_12px_28px_-12px_oklch(0.81_0.155_75/0.55)] focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        {registering ? "Registering..." : "Register New Screen"}
+        {registering ? "Registering" : "Register this screen"}
       </button>
 
-      <p className="text-fg-subtle text-sm max-w-md text-center">
-        This will create a screen identity and show a pairing code. You&apos;ll link it from
-        the admin dashboard.
+      <p className="text-fg-subtle text-meta max-w-md text-center leading-relaxed">
+        Creates a screen identity and shows a pairing code. Link it from the admin dashboard.
       </p>
     </div>
   );

@@ -21,12 +21,12 @@ export function FormField({ label, error, hint, children }: FormFieldProps) {
 
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-fg">
+      <label htmlFor={id} className="text-label text-fg">
         {label}
       </label>
       {enhanced}
       {(error || hint) && (
-        <span id={`${id}-msg`} className={`text-xs ${error ? "text-danger" : "text-fg-subtle"}`}>
+        <span id={`${id}-msg`} className={`text-meta ${error ? "text-danger" : "text-fg-subtle"}`}>
           {error || hint}
         </span>
       )}

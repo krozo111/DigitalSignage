@@ -1,0 +1,182 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-27T00:00:00Z",
+  "title": "Design System: Yugo Signage",
+  "extensions": {
+    "colorMeta": {
+      "background":     { "role": "neutral", "displayName": "Indigo Foundation", "canonical": "oklch(0.15 0.022 290)",
+        "tonalRamp": ["oklch(0.10 0.020 290)","oklch(0.13 0.022 290)","oklch(0.15 0.022 290)","oklch(0.18 0.024 290)","oklch(0.22 0.028 290)","oklch(0.30 0.034 290)","oklch(0.42 0.038 290)","oklch(0.55 0.042 290)"] },
+      "surface-1":      { "role": "neutral", "displayName": "Surface 1", "canonical": "oklch(0.20 0.028 290)",
+        "tonalRamp": ["oklch(0.12 0.024 290)","oklch(0.16 0.026 290)","oklch(0.20 0.028 290)","oklch(0.24 0.034 290)","oklch(0.30 0.040 290)","oklch(0.40 0.044 290)","oklch(0.55 0.046 290)","oklch(0.70 0.040 290)"] },
+      "surface-2":      { "role": "neutral", "displayName": "Surface 2", "canonical": "oklch(0.24 0.034 290)",
+        "tonalRamp": ["oklch(0.14 0.026 290)","oklch(0.18 0.030 290)","oklch(0.22 0.032 290)","oklch(0.24 0.034 290)","oklch(0.32 0.040 290)","oklch(0.44 0.044 290)","oklch(0.58 0.044 290)","oklch(0.74 0.038 290)"] },
+      "fg":             { "role": "neutral", "displayName": "Console Off-White", "canonical": "oklch(0.985 0.004 80)",
+        "tonalRamp": ["oklch(0.30 0.010 80)","oklch(0.45 0.010 80)","oklch(0.60 0.008 80)","oklch(0.72 0.008 80)","oklch(0.82 0.006 80)","oklch(0.90 0.006 80)","oklch(0.95 0.004 80)","oklch(0.985 0.004 80)"] },
+      "accent":         { "role": "primary", "displayName": "Yugo Gold", "canonical": "oklch(0.81 0.155 75)",
+        "tonalRamp": ["oklch(0.30 0.080 75)","oklch(0.42 0.110 75)","oklch(0.54 0.135 75)","oklch(0.64 0.150 75)","oklch(0.74 0.165 75)","oklch(0.81 0.155 75)","oklch(0.88 0.120 75)","oklch(0.95 0.060 75)"] },
+      "success":        { "role": "secondary", "displayName": "Operator Mint", "canonical": "oklch(0.78 0.12 165)",
+        "tonalRamp": ["oklch(0.30 0.060 165)","oklch(0.42 0.085 165)","oklch(0.54 0.105 165)","oklch(0.66 0.115 165)","oklch(0.78 0.12 165)","oklch(0.85 0.105 165)","oklch(0.91 0.075 165)","oklch(0.96 0.040 165)"] },
+      "warning":        { "role": "secondary", "displayName": "Amber Caution", "canonical": "oklch(0.80 0.15 70)",
+        "tonalRamp": ["oklch(0.32 0.075 70)","oklch(0.44 0.105 70)","oklch(0.56 0.130 70)","oklch(0.68 0.145 70)","oklch(0.80 0.15 70)","oklch(0.87 0.125 70)","oklch(0.92 0.085 70)","oklch(0.96 0.045 70)"] },
+      "danger":         { "role": "secondary", "displayName": "Coral Stop", "canonical": "oklch(0.74 0.135 25)",
+        "tonalRamp": ["oklch(0.28 0.070 25)","oklch(0.40 0.100 25)","oklch(0.52 0.120 25)","oklch(0.63 0.130 25)","oklch(0.74 0.135 25)","oklch(0.83 0.110 25)","oklch(0.90 0.075 25)","oklch(0.95 0.040 25)"] },
+      "info":           { "role": "tertiary", "displayName": "Console Violet", "canonical": "oklch(0.62 0.21 280)",
+        "tonalRamp": ["oklch(0.22 0.090 280)","oklch(0.32 0.130 280)","oklch(0.42 0.170 280)","oklch(0.52 0.195 280)","oklch(0.62 0.21 280)","oklch(0.73 0.180 280)","oklch(0.84 0.130 280)","oklch(0.93 0.070 280)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display",  "purpose": "Brand wordmark on standalone pages (login, register, player splashes)." },
+      "h1":      { "displayName": "Heading 1", "purpose": "Page titles via PageHeader." },
+      "h2":      { "displayName": "Heading 2", "purpose": "Section headings, sidebar wordmark, modal titles." },
+      "stat":    { "displayName": "Stat",      "purpose": "Hero metric on StatCard. Tabular numerics baked in." },
+      "label":   { "displayName": "Label",     "purpose": "UI labels, nav rows, buttons, body text. The workhorse." },
+      "eyebrow": { "displayName": "Eyebrow",   "purpose": "Uppercase tags above headings and stat-card category labels." },
+      "meta":    { "displayName": "Meta",      "purpose": "Captions, helper text under inputs, secondary metadata." },
+      "mono":    { "displayName": "Mono",      "purpose": "Pairing codes, screen IDs, file paths. Geist Mono." }
+    },
+    "shadows": [
+      { "name": "inset-top-edge",  "value": "0 1px 0 oklch(1 0 0 / 0.04) inset",                                                  "purpose": "Ambient lift on every surface card." },
+      { "name": "card-lift",       "value": "0 1px 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5)",            "purpose": "Default Card elevation." },
+      { "name": "stat-lift",       "value": "0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 28px -16px oklch(0 0 0 / 0.6)",           "purpose": "StatCard elevation; deeper drop so the metric reads as primary." },
+      { "name": "drawer-cast",     "value": "8px 0 32px -12px oklch(0 0 0 / 0.6)",                                                "purpose": "Mobile nav drawer casting onto the dimmed body." },
+      { "name": "menu-cast",       "value": "0 24px 60px -20px oklch(0 0 0 / 0.7)",                                               "purpose": "Account menus, dropdowns, login card." },
+      { "name": "primary-cta-halo","value": "0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 20px -10px oklch(0.81 0.155 75 / 0.6)",    "purpose": "Inset top-edge highlight plus a warm gold drop behind primary buttons. Earned, not decorative." },
+      { "name": "sidebar-seam",    "value": "1px 0 0 oklch(1 0 0 / 0.03) inset",                                                  "purpose": "Single-pixel highlight along the inner edge of the desktop sidebar." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart",  "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default ease-out for fades and reveals. Exponential, no bounce." },
+      { "name": "ease-in-quart",   "value": "cubic-bezier(0.4, 0, 1, 1)",     "purpose": "Ease-in counterpart for fade-out." },
+      { "name": "duration-fast",   "value": "150ms",                          "purpose": "Hover and color transitions." },
+      { "name": "duration-base",   "value": "200ms",                          "purpose": "Fades, menu open/close, drawer." },
+      { "name": "duration-shell",  "value": "200ms",                          "purpose": "Sidebar collapse width transition (the one layout-prop exception)." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px",  "purpose": "Mobile → desktop shell switchover. Below md: top bar + drawer. At/above md: persistent sidebar." },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The single primary CTA on a screen. Gold background, deep-indigo text, earned halo.",
+      "html": "<button class=\"ds-btn-primary\">Enter dashboard</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: oklch(0.81 0.155 75); color: oklch(0.18 0.025 290); font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.35; letter-spacing: -0.002em; padding: 0.625rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; box-shadow: 0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 20px -10px oklch(0.81 0.155 75 / 0.6); transition: background-color 200ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-primary:hover { background: oklch(0.74 0.165 70); } .ds-btn-primary:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.15 0.022 290), 0 0 0 4px oklch(0.81 0.155 75); } .ds-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Neutral non-primary action. Surface-2 with a thin border. No halo.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: oklch(0.24 0.034 290); color: oklch(0.985 0.004 80); font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1.35; padding: 0.625rem 1rem; border: 1px solid oklch(0.985 0.004 80 / 0.14); border-radius: 0.5rem; cursor: pointer; transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-secondary:hover { background: oklch(0.20 0.028 290); } .ds-btn-secondary:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.15 0.022 290), 0 0 0 4px oklch(0.81 0.155 75); }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Destructive confirm. Saturated coral with on-danger deep-warm text.",
+      "html": "<button class=\"ds-btn-danger\">Delete screen</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; background: oklch(0.74 0.135 25); color: oklch(0.20 0.04 25); font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; line-height: 1.35; padding: 0.625rem 1rem; border: none; border-radius: 0.5rem; cursor: pointer; transition: background-color 150ms cubic-bezier(0.22, 1, 0.36, 1); } .ds-btn-danger:hover { background: oklch(0.74 0.135 25 / 0.9); } .ds-btn-danger:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.15 0.022 290), 0 0 0 4px oklch(0.81 0.155 75); }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Surface-2 input with strong border, gold focus ring, accessible error linkage.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Email</span><input class=\"ds-input\" type=\"email\" placeholder=\"admin@example.com\" /></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 0.375rem; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: oklch(0.985 0.004 80); } .ds-input { background: oklch(0.24 0.034 290); color: oklch(0.985 0.004 80); border: 1px solid oklch(0.985 0.004 80 / 0.14); border-radius: 0.5rem; padding: 0.625rem 1rem; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.35; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: oklch(0.985 0.004 80 / 0.46); } .ds-input:focus { outline: none; border-color: transparent; box-shadow: 0 0 0 2px oklch(0.81 0.155 75); }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Surface-1 panel with ghost-thin border, inset-top-edge highlight, soft drop.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Screen status</h3><p class=\"ds-card-body\">Five screens registered. Four currently online.</p></div>",
+      "css": ".ds-card { background: oklch(0.20 0.028 290); border: 1px solid oklch(0.985 0.004 80 / 0.07); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5); } .ds-card-title { margin: 0 0 0.5rem; font-family: Geist, system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.012em; color: oklch(0.985 0.004 80); } .ds-card-body { margin: 0; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.35; color: oklch(0.985 0.004 80 / 0.66); }"
+    },
+    {
+      "name": "Stat Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Dashboard hero pattern: eyebrow + icon pill + Stat number + meta + footer link.",
+      "html": "<div class=\"ds-stat\"><div class=\"ds-stat-head\"><span class=\"ds-stat-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 22h8\"/></svg></span><span class=\"ds-eyebrow\">Linked Screens</span></div><div class=\"ds-stat-row\"><span class=\"ds-stat-value\">4</span><span class=\"ds-stat-aux\">/ 5 registered</span></div><p class=\"ds-stat-meta\"><span class=\"ds-stat-dot\"></span>3 currently online</p><a class=\"ds-stat-link\" href=\"#\">Manage screens <span aria-hidden=\"true\">→</span></a></div>",
+      "css": ".ds-stat { background: oklch(0.20 0.028 290); border: 1px solid oklch(0.985 0.004 80 / 0.07); border-radius: 0.75rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 28px -16px oklch(0 0 0 / 0.6); font-family: Geist, system-ui, sans-serif; color: oklch(0.985 0.004 80); } .ds-stat-head { display: flex; align-items: center; gap: 0.625rem; } .ds-stat-icon { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; display: inline-flex; align-items: center; justify-content: center; background: oklch(0.78 0.12 165 / 0.13); color: oklch(0.78 0.12 165); } .ds-eyebrow { font-size: 0.6875rem; font-weight: 600; line-height: 1.2; letter-spacing: 0.075em; text-transform: uppercase; color: oklch(0.985 0.004 80 / 0.66); } .ds-stat-row { display: flex; align-items: baseline; gap: 0.625rem; margin-top: 1rem; } .ds-stat-value { font-size: 2.25rem; font-weight: 700; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; } .ds-stat-aux { font-size: 0.75rem; color: oklch(0.985 0.004 80 / 0.46); font-variant-numeric: tabular-nums; } .ds-stat-meta { margin: 0.75rem 0 0; font-size: 0.75rem; color: oklch(0.78 0.12 165); display: inline-flex; align-items: center; gap: 0.375rem; } .ds-stat-dot { width: 0.375rem; height: 0.375rem; border-radius: 999px; background: oklch(0.78 0.12 165); box-shadow: 0 0 8px currentColor; } .ds-stat-link { margin-top: auto; font-size: 0.875rem; font-weight: 500; color: oklch(0.81 0.155 75); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; } .ds-stat-link:hover { color: oklch(0.74 0.165 70); }"
+    },
+    {
+      "name": "Badge (Info)",
+      "kind": "chip",
+      "refersTo": "badge-info",
+      "description": "Pill badge with soft tint and inset ring. Optional dot prefix carries state.",
+      "html": "<span class=\"ds-badge ds-badge--info\"><span class=\"ds-badge-dot\" aria-hidden=\"true\"></span>Current</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.125rem 0.5rem; border-radius: 9999px; font-family: Geist, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; line-height: 1.45; box-shadow: inset 0 0 0 1px transparent; } .ds-badge--info { background: oklch(0.62 0.21 280 / 0.16); color: oklch(0.62 0.21 280); box-shadow: inset 0 0 0 1px oklch(0.62 0.21 280 / 0.25); } .ds-badge-dot { width: 0.375rem; height: 0.375rem; border-radius: 999px; background: currentColor; }"
+    },
+    {
+      "name": "Nav Link (Active)",
+      "kind": "nav",
+      "refersTo": "nav-link-active",
+      "description": "Sidebar / drawer link. Active state is violet (info), never gold.",
+      "html": "<a class=\"ds-nav ds-nav--active\" href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 22h8\"/></svg><span>Screens</span></a>",
+      "css": ".ds-nav { display: inline-flex; align-items: center; gap: 0.75rem; height: 2.5rem; padding: 0 0.75rem; border-radius: 0.5rem; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1.35; text-decoration: none; color: oklch(0.985 0.004 80 / 0.66); transition: background-color 150ms, color 150ms; } .ds-nav:hover { background: oklch(0.985 0.004 80 / 0.04); color: oklch(0.985 0.004 80); } .ds-nav--active { background: oklch(0.62 0.21 280 / 0.16); color: oklch(0.62 0.21 280); box-shadow: inset 0 0 0 1px oklch(0.62 0.21 280 / 0.2); } .ds-nav:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.81 0.155 75); }"
+    },
+    {
+      "name": "Empty State (Dashed)",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "Drop-zone empty state. Dashed border, fg-disabled icon, meta-size description.",
+      "html": "<div class=\"ds-empty\" role=\"button\" tabindex=\"0\"><svg viewBox=\"0 0 24 24\" width=\"36\" height=\"36\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M12 5v14M5 12h14\"/></svg><p class=\"ds-empty-title\">Add the first playlist</p><p class=\"ds-empty-desc\">Group your media into a playback order. You can reorder, swap, or trim later.</p></div>",
+      "css": ".ds-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 4rem 1.5rem; border: 2px dashed oklch(0.985 0.004 80 / 0.14); border-radius: 0.75rem; color: oklch(0.985 0.004 80 / 0.46); cursor: pointer; transition: border-color 150ms, color 150ms; font-family: Geist, system-ui, sans-serif; } .ds-empty svg { color: oklch(0.985 0.004 80 / 0.24); margin-bottom: 0.75rem; } .ds-empty:hover { color: oklch(0.985 0.004 80 / 0.66); border-color: oklch(0.985 0.004 80 / 0.20); } .ds-empty:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.15 0.022 290), 0 0 0 4px oklch(0.81 0.155 75); } .ds-empty-title { margin: 0; font-size: 0.875rem; font-weight: 500; color: oklch(0.985 0.004 80 / 0.66); } .ds-empty-desc { margin: 0.25rem 0 0; max-width: 22rem; font-size: 0.75rem; line-height: 1.45; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Operator's Console",
+    "overview": "Yugo's admin is a console for one technical operator running five Smart TVs. The interface is a dark indigo workshop with a single gold filament for the next action. It should feel like a tool the operator earned, not a product being sold to them. Calm, low-affect, expert-confident. Closer to a piece of broadcast hardware than a SaaS dashboard.\n\nDensity is earned through hierarchy, not stuffing. Surfaces tint, never gloss. Color carries meaning (status, navigation, danger) and gold is reserved as punctuation for the primary path. The interface does its job and steps out of the way.\n\nThis system explicitly rejects, as named in PRODUCT.md: generic SaaS gradient dashboards (2022–2025), Linear/Vercel visual cosplay, consumer-warm cream tones (Notion-light, Stripe-marketing), crypto and AI terminal aesthetics (neon-on-black, brutalist grids, scanlines), and corporate BI tools (circular brand-color icons, gratuitous charts).",
+    "keyCharacteristics": [
+      "Dark indigo foundation (hue ~290°) with off-axis violet wash on the body.",
+      "Three semantic accents: gold (action), mint (online/success), violet (info, current nav), coral (danger).",
+      "OKLCH throughout. No pure #000 or #fff anywhere.",
+      "Layered surfaces, not glass. Backdrop blur is reserved for sticky bars.",
+      "One sans family (Geist) carries every text role. Mono is reserved for codes and IDs.",
+      "Mobile is a first-class surface, designed for thumb-reach in front of a TV."
+    ],
+    "rules": [
+      { "name": "The Punctuation Rule",         "section": "colors",     "body": "Yugo Gold is punctuation, never decoration. It marks the next action, the focused field, or the brand moment. If gold appears on more than ~10% of a screen, the hierarchy has collapsed and the screen is wrong." },
+      { "name": "The No-Pure-Pixel Rule",       "section": "colors",     "body": "No #000, no #fff. Every neutral carries a tiny brand chroma so the system never reads as flat. The closest you go to black is oklch(0.15 0.022 290); the closest to white is oklch(0.985 0.004 80)." },
+      { "name": "The Meaning-Bearing-Color Rule","section": "colors",    "body": "Color names a state: online (mint), current nav (violet), action (gold), danger (coral), caution (amber). Color never decorates. If a colored element doesn't carry one of these meanings, it's the wrong color." },
+      { "name": "The One Voice Rule",           "section": "typography", "body": "A single Geist family covers the whole UI. No display serif, no condensed accents, no second sans. If a design needs a fancy heading, the answer is weight + scale, not a new family." },
+      { "name": "The Tnum Rule",                "section": "typography", "body": "Any column of digits (counts, sizes, durations, IDs, pairing codes) uses tabular numerics. Numbers must not shift width as they update." },
+      { "name": "The Token-Or-Don't Rule",      "section": "typography", "body": "Use text-display / text-h1 / text-h2 / text-stat / text-label / text-eyebrow / text-meta in markup. Stacking text-sm font-medium tracking-tight inline is forbidden; it is how scales drift." },
+      { "name": "The Tonal-First Rule",         "section": "elevation",  "body": "Reach for a lighter surface before a heavier shadow. A card lifts because surface-1 is lighter than the body, not because it has a big drop shadow. Shadows reinforce, they don't carry the elevation alone." },
+      { "name": "The Earned-Halo Rule",         "section": "elevation",  "body": "The gold halo behind primary buttons is reserved for the single primary action on a screen. Two halos on the same screen mean one of them isn't actually primary." }
+    ],
+    "dos": [
+      "Do lead with the type-scale utility classes (text-display, text-h1, text-h2, text-stat, text-label, text-eyebrow, text-meta). They bake size, leading, tracking, and weight together.",
+      "Do use semantic color tokens (bg-accent, text-info, bg-danger-soft), never the raw --yugo-* brand colors in components. The raw tokens are migration-only.",
+      "Do carry status with shape, icon, or label alongside color. Color is never the sole carrier of state.",
+      "Do layer elevation tonally first (surface-1 → surface-2 → surface-3) before reaching for a shadow.",
+      "Do use OKLCH for every color. Reduce chroma as lightness approaches the extremes.",
+      "Do size touch targets to ≥44×44 px on mobile surfaces. The on-site flow is thumb-driven, standing in front of a TV.",
+      "Do prefer inline progressive disclosure over modals. Modals are a last resort for irreversible actions.",
+      "Do keep gold rare. One primary action per screen. One focused field at a time.",
+      "Do respect prefers-reduced-motion. Fade transitions only; never parallax or scroll-driven choreography."
+    ],
+    "donts": [
+      "Don't use generic SaaS dashboard tropes: purple-to-blue gradients, glass cards by default, the hero-metric template, gradient text, identical-card grids, or modal-first flows.",
+      "Don't clone Linear or Vercel surfaces directly. Borrow the discipline (reliable + technical register), not the visual signature.",
+      "Don't introduce consumer-warm cream tones: Notion-light, Stripe-marketing cream, beige backgrounds. Yugo lives in dark, full stop.",
+      "Don't drift into crypto / AI terminal aesthetics: neon-on-black, monospace everywhere, brutalist grids, scanlines. Reliable, not dystopian.",
+      "Don't ape corporate BI tools: circular brand-color icons, gratuitous charts, dense without earning the density.",
+      "Don't use #000 or #fff. Every neutral carries the brand chroma.",
+      "Don't put a border-left or border-right greater than 1px as a colored accent on a card, list item, or callout. Side-stripe borders are banned.",
+      "Don't apply background-clip: text with a gradient. Gradient text is banned. Use a single solid color for emphasis.",
+      "Don't glass by default. Backdrop blur is reserved for sticky bars attached to scrolling content.",
+      "Don't put gold on more than one element-cluster per screen. If two things are gold, one of them isn't actually primary.",
+      "Don't use em dashes or double-hyphens in UI copy. Use commas, colons, semicolons, periods, or parentheses.",
+      "Don't stack text-sm font-medium tracking-tight inline. Use a type-scale class.",
+      "Don't animate CSS layout properties. Animate opacity, transform, color, background.",
+      "Don't rely on color alone for online/offline, success/danger, or current navigation."
+    ]
+  }
+}

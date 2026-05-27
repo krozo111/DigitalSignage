@@ -11,7 +11,7 @@ function SkeletonShape({
   variant: LoadingSkeletonProps["variant"];
   className?: string;
 }) {
-  const base = "animate-pulse bg-white/10 rounded-lg";
+  const base = "animate-pulse bg-fg/[0.06] rounded-lg";
 
   if (variant === "circle") {
     return (
