@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { getAllScreens, Screen } from "@/lib/services/screenService";
 import { getAllPlaylists, Playlist } from "@/lib/services/playlistService";
 import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
@@ -10,33 +9,23 @@ import { ScreenIcon } from "@/components/icons/ScreenIcon";
 import { PlaylistIcon } from "@/components/icons/PlaylistIcon";
 import { MediaIcon } from "@/components/icons/MediaIcon";
 import { PageHeader } from "@/components/PageHeader";
+import { useCachedQuery, CacheKeys } from "@/lib/cache";
 
 export default function AdminDashboardHome() {
-  const [screens, setScreens] = useState<Screen[]>([]);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]);
-  const [mediaItems, setMediaItems] = useState<MediaItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: screens = [], loading: screensLoading } = useCachedQuery<Screen[]>(
+    CacheKeys.screens,
+    getAllScreens,
+  );
+  const { data: playlists = [], loading: playlistsLoading } = useCachedQuery<Playlist[]>(
+    CacheKeys.playlists,
+    getAllPlaylists,
+  );
+  const { data: mediaItems = [], loading: mediaLoading } = useCachedQuery<MediaItem[]>(
+    CacheKeys.media,
+    getAllMedia,
+  );
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const [screensRes, playlistsRes, mediaRes] = await Promise.all([
-          getAllScreens(),
-          getAllPlaylists(),
-          getAllMedia(),
-        ]);
-        setScreens(screensRes);
-        setPlaylists(playlistsRes);
-        setMediaItems(mediaRes);
-      } catch (err) {
-        console.error("Error cargando dashboard:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, []);
+  const loading = screensLoading && playlistsLoading && mediaLoading;
 
   const linkedScreens = screens.filter(s => s.pairingCode === null).length;
   const onlineScreens = screens.filter(s => s.status === "online").length;

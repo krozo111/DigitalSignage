@@ -11,11 +11,9 @@ export interface AdminSession {
   email: string;
 }
 
-/**
- * Verifies the admin session cookie cryptographically.
- * Returns the decoded session if valid AND the email matches ADMIN_EMAIL.
- * Returns null otherwise. Checks revocation on every call.
- */
+const REVOKE_CHECK_INTERVAL_MS = 5 * 60 * 1000;
+const lastRevokeCheck = new Map<string, number>();
+
 export async function getAdminSession(): Promise<AdminSession | null> {
   const cookieStore = await cookies();
   const sessionCookie = cookieStore.get(SESSION_COOKIE_NAME)?.value;
@@ -26,13 +24,21 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   if (!adminEmail) return null;
 
   try {
-    const decoded = await getAuth(adminApp).verifySessionCookie(sessionCookie, true);
+    const auth = getAuth(adminApp);
+    const decoded = await auth.verifySessionCookie(sessionCookie, false);
 
     if (decoded.email !== adminEmail) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("[auth] email mismatch:", decoded.email, "vs", adminEmail);
       }
       return null;
+    }
+
+    const now = Date.now();
+    const last = lastRevokeCheck.get(decoded.sub) ?? 0;
+    if (now - last > REVOKE_CHECK_INTERVAL_MS) {
+      await auth.verifySessionCookie(sessionCookie, true);
+      lastRevokeCheck.set(decoded.sub, now);
     }
 
     return { uid: decoded.uid, email: decoded.email };
