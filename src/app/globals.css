@@ -3,7 +3,10 @@
 :root {
   --background: #0a0a0a;
   --foreground: #ffffff;
-  --yugo-primary: #2B1F41;
+
+  /* Brand palette — identity colors, do not reference directly in components.
+     Use semantic tokens (surface, fg, accent, etc.) instead. */
+  --yugo-primary: #211B30;
   --yugo-accent: #EFB851;
   --yugo-secondary: #50CBAD;
   --yugo-vibrant: #6C49EE;
@@ -13,20 +16,49 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Brand (kept for migration; prefer semantic tokens below) */
   --color-yugo-primary: var(--yugo-primary);
   --color-yugo-accent: var(--yugo-accent);
   --color-yugo-secondary: var(--yugo-secondary);
   --color-yugo-vibrant: var(--yugo-vibrant);
   --color-yugo-soft: var(--yugo-soft);
+
+  /* Semantic surfaces — translucent, layered over --background.
+     surface-1: cards, panels. surface-2: inputs, raised controls.
+     surface-3: sunken / inner. surface-strong: overlays, modal panels, sticky bars. */
+  --color-surface-1: rgb(33 27 48 / 0.4);
+  --color-surface-2: rgb(33 27 48 / 0.6);
+  --color-surface-3: rgb(33 27 48 / 0.2);
+  --color-surface-strong: rgb(33 27 48 / 0.85);
+
+  /* Foreground text levels */
+  --color-fg: rgb(255 255 255);
+  --color-fg-muted: rgb(255 255 255 / 0.6);
+  --color-fg-subtle: rgb(255 255 255 / 0.4);
+  --color-fg-disabled: rgb(255 255 255 / 0.2);
+  --color-on-accent: #1A1424;
+
+  /* Borders */
+  --color-border: rgb(255 255 255 / 0.05);
+  --color-border-strong: rgb(255 255 255 / 0.1);
+  --color-border-accent: #EFB851;
+
+  /* Status / intent */
+  --color-accent: #EFB851;
+  --color-accent-soft: rgb(239 184 81 / 0.1);
+  --color-success: #50CBAD;
+  --color-warning: #fbbf24;
+  --color-danger: #f87171;
+  --color-danger-soft: rgb(248 113 113 / 0.1);
+
+  /* Typography */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Animations */
+  --animate-fade-in: fadeIn 200ms ease-out;
+  --animate-fade-out: fadeOut 200ms ease-in;
 }
 
 @keyframes fadeOut {
@@ -47,7 +79,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
 }
 
 .scrollbar-none {

@@ -5,6 +5,13 @@ import { db } from "@/lib/firebase.config";
 import { doc, collection, addDoc, onSnapshot, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
 import { PlaybackItem, useSignageLoop } from "@/hooks/useSignageLoop";
 import QRCode from "qrcode";
+import { IdleScreen } from "@/features/player/components/IdleScreen";
+import { PairingScreen } from "@/features/player/components/PairingScreen";
+import { PlaybackView } from "@/features/player/components/PlaybackView";
+import { RegisterScreen } from "@/features/player/components/RegisterScreen";
+import { StatusOverlay } from "@/features/player/components/StatusOverlay";
+import { UpdateBadge } from "@/features/player/components/UpdateBadge";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 function generatePairingCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -18,10 +25,11 @@ function generatePairingCode() {
 }
 
 export default function Home() {
+  useDocumentTitle("Yugo Signage Player");
   const [screenId, setScreenId] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [mediaItems, setMediaItems] = useState<PlaybackItem[]>([]);
-  
+
   const [networkError, setNetworkError] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
   const [needsRegistration, setNeedsRegistration] = useState(false);
@@ -47,8 +55,6 @@ export default function Home() {
     }
   }, [pairingCode]);
 
-
-
   // 1. Screen setup: Recover existing identity or prompt for registration
   useEffect(() => {
     const initializePlayer = async () => {
@@ -73,7 +79,6 @@ export default function Home() {
         }
       }
 
-      // No valid stored ID → show registration button (don't auto-create)
       setNeedsRegistration(true);
     };
 
@@ -188,7 +193,6 @@ export default function Home() {
       setNetworkError(false);
       const data = snap.data();
 
-      // Auto-refresh pairing code if expired and still unclaimed
       const codeExpiry = data.pairingCodeExpiresAt as Timestamp | undefined;
       if (data.pairingCode && codeExpiry && codeExpiry.toMillis() < Date.now()) {
         const PAIRING_CODE_TTL_MS = 15 * 60 * 1000;
@@ -226,7 +230,7 @@ export default function Home() {
     };
   }, [screenId]);
 
-  // 2b. Polling fallback — safety net if WebSocket disconnects silently on TV WebViews
+  // Polling fallback — safety net if WebSocket disconnects silently on TV WebViews
   useEffect(() => {
     if (!screenId) return;
 
@@ -254,7 +258,7 @@ export default function Home() {
           }
         }
       } catch {
-        // Silent fail — onSnapshot handles connectivity, this is just a backup
+        // onSnapshot handles connectivity, this is just a backup
       }
     };
 
@@ -262,7 +266,7 @@ export default function Home() {
     return () => clearInterval(interval);
   }, [screenId]);
 
-  // 2b. Heartbeat: update lastSeen every 60s
+  // Heartbeat: update lastSeen every 60s
   useEffect(() => {
     if (!screenId) return;
 
@@ -272,7 +276,6 @@ export default function Home() {
         .catch(() => {});
     };
 
-    // Debounce inicial para no pisar el boot
     const timer = setTimeout(sendHeartbeat, 5000);
     const interval = setInterval(sendHeartbeat, 60_000);
     return () => {
@@ -336,171 +339,53 @@ export default function Home() {
 
   useEffect(() => {
     const prev = prevCurrentItemRef.current;
-    prevCurrentItemRef.current = currentItem;
+    prevCurrentItemRef.current = currentItem ?? null;
 
     if (prev && prev.id !== currentItem?.id && currentItem) {
       setFadingItem(prev);
     }
-  }, [currentItem?.id, currentItem?.url]);
+  }, [currentItem?.id, currentItem?.url, currentItem]);
 
-  function LiveClock() {
-    const [time, setTime] = useState("");
-    useEffect(() => {
-      const update = () => setTime(new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-      update();
-      const id = setInterval(update, 1000);
-      return () => clearInterval(id);
-    }, []);
-    return <>{time}</>;
-  }
-
-  // ======= RENDER =======
-  
   if (!isMounted) {
     return (
-      <div className="flex flex-col h-screen w-screen bg-black items-center justify-center text-slate-500 overflow-hidden text-xl font-medium">
+      <div className="flex flex-col h-screen w-screen bg-black items-center justify-center text-fg-muted overflow-hidden text-xl font-medium">
         Loading...
       </div>
     );
   }
 
   return (
-    <div className="relative h-screen w-screen bg-black overflow-hidden select-none">
-      
+    <main className="relative h-screen w-screen bg-black overflow-hidden select-none">
+      {!needsRegistration && !pairingCode && <StatusOverlay offline={networkError} />}
+      {showUpdateBadge && <UpdateBadge />}
 
-
-      {/* Status overlay */}
-      {!needsRegistration && !pairingCode && (
-        <div className="absolute bottom-4 right-6 z-40 flex items-center gap-3 text-white/30 text-xs font-mono pointer-events-none">
-          <span className="flex items-center gap-1.5">
-            <span className={`inline-block w-1.5 h-1.5 rounded-full ${networkError ? "bg-red-500" : "bg-yugo-secondary shadow-[0_0_6px_rgba(80,203,173,0.6)]"}`} />
-            {networkError ? "Offline" : "Connected"}
-          </span>
-          <LiveClock />
-        </div>
-      )}
-
-      {/* Live-update badge */}
-      {showUpdateBadge && (
-        <div
-          className="absolute top-4 right-6 z-40 bg-yugo-accent/20 text-yugo-accent text-xs font-medium px-3 py-1.5 rounded-full border border-yugo-accent/10 transition-opacity duration-500"
-        >
-          Content Updated
-        </div>
-      )}
-
-      {/* State: Needs Registration — no screen identity, show button */}
       {needsRegistration ? (
-        <div className="flex flex-col h-full w-full items-center justify-center text-white gap-6">
-          <div className="text-center">
-            <h1 className="text-3xl font-bold mb-2">Digital Signage Player</h1>
-            <p className="text-slate-400 text-lg">No screen is registered on this device.</p>
-          </div>
-          {registerError && (
-            <div className="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-lg text-sm max-w-md">
-              {registerError}
-            </div>
-          )}
-          <button
-            onClick={handleRegisterScreen}
-            disabled={registering}
-            className="bg-yugo-accent hover:bg-yugo-accent/90 disabled:opacity-50 text-yugo-primary font-bold py-4 px-10 rounded-2xl text-xl transition-all border-none cursor-pointer shadow-[0_0_30px_rgba(239,184,81,0.3)]"
-          >
-            {registering ? "Registering..." : "Register New Screen"}
-          </button>
-          <p className="text-slate-600 text-sm max-w-md text-center">
-            This will create a screen identity and show a pairing code. You&apos;ll link it from the admin dashboard.
-          </p>
-        </div>
-
-      /* State: Has pairing code — waiting for admin to claim */
+        <RegisterScreen
+          registering={registering}
+          error={registerError}
+          onRegister={handleRegisterScreen}
+        />
       ) : pairingCode ? (
-        <div className="flex flex-col h-full w-full items-center justify-center text-white">
-          <h1 className="text-2xl text-slate-400 uppercase tracking-widest mb-4">Pair your screen</h1>
-          <p className="text-lg text-slate-500 mb-8">Enter this code in your control panel</p>
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div
-              className="text-8xl md:text-9xl font-bold tracking-widest bg-slate-900 border-4 border-slate-700 py-8 px-16 rounded-3xl text-blue-500"
-              style={{ animation: "pulseGlow 3s ease-in-out infinite" }}
-            >
-              {pairingCode}
-            </div>
-            <div className="flex items-center justify-center rounded-xl bg-white p-2 w-32 h-32 md:w-40 md:h-40">
-              {qrDataUrl ? (
-                <img
-                  src={qrDataUrl}
-                  alt={`QR code for pairing code ${pairingCode}`}
-                  className="w-full h-full"
-                />
-              ) : (
-                <div className="w-full h-full bg-gray-200 animate-pulse rounded" />
-              )}
-            </div>
-          </div>
-          <p className="text-slate-500 text-sm mt-6">Scan the QR code or enter the code manually</p>
-        </div>
-
-      /* State: No media yet — loading or offline */
+        <PairingScreen code={pairingCode} qrDataUrl={qrDataUrl} />
       ) : mediaItems.length === 0 ? (
-        <div className="flex h-full w-full items-center justify-center text-slate-500 text-xl font-medium">
-          {networkError ? "Offline — no content cached" : "Waiting for playlist..."}
-        </div>
-
-      /* State: Playing content */
+        <IdleScreen offline={networkError} />
       ) : (
-        <>
-          {/* Preload next item */}
-          {nextItem && nextItem.id !== currentItem?.id && (
-            <div className="absolute inset-0 opacity-0 -z-20 pointer-events-none">
-              {nextItem.type === "vid" ? (
-                <video src={nextItem.url} preload="auto" muted playsInline />
-              ) : (
-                <img src={nextItem.url} alt="preload" className="w-full h-full object-cover" />
-              )}
-            </div>
-          )}
-
-          {/* Current item */}
-          {currentItem && (
-            <div
-              key={`${currentItem.id}-${currentIndex}`}
-              className="absolute inset-0 z-10 animate-[fadeIn_500ms_ease-in-out]"
-            >
-              {currentItem.type === "vid" ? (
-                <video
-                  ref={videoRef}
-                  src={currentItem.url}
-                  autoPlay
-                  muted
-                  playsInline
-                  onCanPlay={handleVideoReady}
-                  onError={() => { clearVideoTimer(); goToNext(); }}
-                  onEnded={handleVideoEnd}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <img src={currentItem.url} alt="signage" className="w-full h-full object-cover" />
-              )}
-            </div>
-          )}
-
-          {/* Fading out previous item */}
-          {fadingItem && (
-            <div
-              key={`fade-${fadingItem.id}`}
-              className="absolute inset-0 z-20"
-              style={{ animation: "fadeOut 500ms ease-in-out forwards" }}
-              onAnimationEnd={() => setFadingItem(null)}
-            >
-              {fadingItem.type === "vid" ? (
-                <video src={fadingItem.url} muted className="w-full h-full object-cover" />
-              ) : (
-                <img src={fadingItem.url} alt="" className="w-full h-full object-cover" />
-              )}
-            </div>
-          )}
-        </>
+        <PlaybackView
+          currentItem={currentItem}
+          nextItem={nextItem}
+          fadingItem={fadingItem}
+          currentIndex={currentIndex}
+          totalItems={mediaItems.length}
+          videoRef={videoRef}
+          onVideoReady={handleVideoReady}
+          onVideoEnd={handleVideoEnd}
+          onVideoError={() => {
+            clearVideoTimer();
+            goToNext();
+          }}
+          onFadeOutComplete={() => setFadingItem(null)}
+        />
       )}
-    </div>
+    </main>
   );
 }

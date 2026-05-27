@@ -45,7 +45,7 @@ export function LoadingSkeleton({
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className="bg-yugo-primary/40 border border-white/5 rounded-xl p-4 space-y-3"
+            className="bg-surface-1 border border-border rounded-xl p-4 space-y-3"
           >
             <SkeletonShape variant="card" />
             <SkeletonShape variant="text" />
@@ -72,7 +72,7 @@ export function LoadingSkeleton({
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className="bg-yugo-primary/40 border border-white/5 rounded-xl p-4 space-y-3"
+            className="bg-surface-1 border border-border rounded-xl p-4 space-y-3"
           >
             <SkeletonShape variant="card" />
             <SkeletonShape variant="text" />

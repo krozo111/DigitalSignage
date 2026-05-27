@@ -15,9 +15,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Admin Signage",
+  title: "Yugo Signage",
   description: "Digital Signage Control Panel",
-  icons: "/favicon.ico",
+  icons: [
+    { rel: "icon", url: "/favicon.png", type: "image/png" },
+    { rel: "shortcut icon", url: "/favicon.png" },
+    { rel: "apple-touch-icon", url: "/favicon.png" },
+  ],
 };
 
 export default function RootLayout({

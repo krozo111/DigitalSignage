@@ -85,11 +85,11 @@ export function ConfirmDialog({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="bg-yugo-primary/95 border border-white/10 rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl backdrop-blur-sm"
+        className="bg-surface-strong border border-border-strong rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl backdrop-blur-sm"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 id={titleId} className="text-lg font-semibold text-white mb-2">{title}</h3>
-        <p className="text-white/60 text-sm mb-6">{message}</p>
+        <h3 id={titleId} className="text-lg font-semibold text-fg mb-2">{title}</h3>
+        <p className="text-fg-muted text-sm mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
           <Button variant="ghost" onClick={onCancel} aria-label={cancelText}>
             {cancelText}

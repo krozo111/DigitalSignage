@@ -35,7 +35,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && (
           <label
             htmlFor={selectId}
-            className="text-sm font-medium text-white/80"
+            className="text-sm font-medium text-fg"
           >
             {label}
           </label>
@@ -45,12 +45,12 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ref={ref}
             id={selectId}
             className={`
-              w-full bg-yugo-primary/60 border rounded-lg px-4 py-3 text-white
+              w-full bg-surface-2 border rounded-lg px-4 py-3 text-fg
               appearance-none cursor-pointer
-              focus:outline-none focus:ring-2 focus:ring-yugo-accent focus:border-transparent
+              focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent
               transition-all duration-200
               disabled:opacity-50 disabled:cursor-not-allowed
-              ${error ? "border-red-500/50" : "border-white/10"}
+              ${error ? "border-danger/50" : "border-border-strong"}
               ${className}
             `}
             {...props}
@@ -67,7 +67,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             ))}
           </select>
           <svg
-            className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 pointer-events-none"
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-subtle pointer-events-none"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -80,7 +80,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
             />
           </svg>
         </div>
-        {error && <span className="text-xs text-red-400">{error}</span>}
+        {error && <span className="text-xs text-danger">{error}</span>}
       </div>
     );
   }

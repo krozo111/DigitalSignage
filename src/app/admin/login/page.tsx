@@ -6,8 +6,10 @@ import { auth } from "@/lib/firebase.config";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
+import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 
 export default function AdminLogin() {
+  useDocumentTitle("Sign in — Yugo Signage");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -51,16 +53,16 @@ export default function AdminLogin() {
     }
   };
 
-  if (!isMounted) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-white/40">Loading...</div>;
+  if (!isMounted) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-fg-subtle">Loading...</div>;
 
   return (
     <div className="flex bg-yugo-primary justify-center items-center min-h-screen">
-      <div className="bg-yugo-primary/40 p-8 rounded-2xl shadow-xl w-full max-w-md border border-white/5 backdrop-blur-sm">
-        <h1 className="text-3xl font-bold text-center text-white mb-6 tracking-tight">
-          <span className="text-yugo-accent">Yugo</span> Signage
+      <div className="bg-surface-1 p-8 rounded-2xl shadow-xl w-full max-w-md border border-border backdrop-blur-sm">
+        <h1 className="text-3xl font-bold text-center text-fg mb-6 tracking-tight">
+          <span className="text-accent">Yugo</span> Signage
         </h1>
         {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-400 p-3 rounded-md mb-6 text-sm text-center">
+          <div className="bg-danger-soft border border-danger text-danger p-3 rounded-md mb-6 text-sm text-center">
             {error}
           </div>
         )}

@@ -1,51 +1,16 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { useAuth } from "@/context/AuthContext";
 import { signOut } from "firebase/auth";
+import { useAuth } from "@/context/AuthContext";
+import { UnsavedChangesProvider } from "@/context/UnsavedChangesContext";
 import { auth } from "@/lib/firebase.config";
-import { useEffect } from "react";
-import { DashboardIcon } from "@/components/icons/DashboardIcon";
-import { MediaIcon } from "@/components/icons/MediaIcon";
-import { PlaylistIcon } from "@/components/icons/PlaylistIcon";
-import { ScreenIcon } from "@/components/icons/ScreenIcon";
-import { LogoutIcon } from "@/components/icons/LogoutIcon";
-import { UnsavedChangesProvider, useUnsavedChanges } from "@/context/UnsavedChangesContext";
-import { Breadcrumbs } from "@/components/Breadcrumbs";
-
-function NavLink({ href, label, icon: Icon }: { href: string; label: string; icon: React.ComponentType<{ className?: string }> }) {
-  const pathname = usePathname();
-  const router = useRouter();
-  const { isDirty, setDirty } = useUnsavedChanges();
-
-  const isActive = pathname === href || (pathname.startsWith(href) && href !== "/admin");
-
-  const handleClick = (e: React.MouseEvent) => {
-    if (isDirty) {
-      e.preventDefault();
-      if (window.confirm("You have unsaved changes. Discard them and leave?")) {
-        setDirty(false);
-        router.push(href);
-      }
-    }
-  };
-
-  return (
-    <Link
-      href={href}
-      onClick={handleClick}
-      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors whitespace-nowrap ${
-        isActive
-          ? "bg-yugo-accent/10 text-yugo-accent font-medium border-l-2 border-yugo-accent rounded-none"
-          : "text-white/60 hover:bg-white/5 hover:text-white"
-      }`}
-    >
-      <Icon />
-      <span>{label}</span>
-    </Link>
-  );
-}
+import { MobileDrawer } from "@/components/admin/MobileDrawer";
+import { MobileTopBar } from "@/components/admin/MobileTopBar";
+import { NAV_ITEMS } from "@/components/admin/navItems";
+import { Sidebar } from "@/components/admin/Sidebar";
+import { useSidebarCollapsed } from "@/components/admin/useSidebarCollapsed";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -56,13 +21,8 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { user, loading } = useAuth();
-
-  const navItems = [
-    { label: "Dashboard", href: "/admin", icon: DashboardIcon },
-    { label: "Media", href: "/admin/media", icon: MediaIcon },
-    { label: "Playlists", href: "/admin/playlists", icon: PlaylistIcon },
-    { label: "Screens", href: "/admin/screens", icon: ScreenIcon },
-  ];
+  const { collapsed, toggle } = useSidebarCollapsed();
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -84,51 +44,41 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
     return <>{children}</>;
   }
 
-  const displayEmail = user?.email ?? serverEmail;
+  const email = user?.email ?? serverEmail;
 
   return (
     <UnsavedChangesProvider>
-      <div className="flex h-screen bg-yugo-primary text-white flex-col md:flex-row">
-        <aside className="w-full md:w-64 bg-yugo-primary/50 border-b md:border-b-0 md:border-r border-white/5 flex flex-col justify-between backdrop-blur-sm">
-          <div>
-            <div className="p-6">
-              <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-                <span className="text-yugo-accent">Yugo</span> Admin
-              </h1>
-              <p className="text-xs text-white/40 mt-1 truncate">{displayEmail}</p>
-            </div>
-            <nav className="flex md:flex-col gap-1 px-4 overflow-x-auto md:overflow-visible pb-4 md:pb-0 scrollbar-none snap-x snap-mandatory">
-              {navItems.map((item) => (
-                <NavLink key={item.href} href={item.href} label={item.label} icon={item.icon} />
-              ))}
-            </nav>
-          </div>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[60] focus:bg-accent focus:text-on-accent focus:px-4 focus:py-2 focus:rounded-lg focus:shadow-lg focus:outline-none"
+      >
+        Skip to main content
+      </a>
+      <div className="flex h-screen bg-yugo-primary text-fg flex-col md:flex-row">
+        <Sidebar
+          collapsed={collapsed}
+          onToggle={toggle}
+          email={email}
+          onLogout={handleLogout}
+          navItems={NAV_ITEMS}
+        />
 
-          <div className="p-4 hidden md:block">
-            <button
-              onClick={handleLogout}
-              className="w-full text-left px-4 py-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors flex items-center gap-3"
-            >
-              <LogoutIcon /> Logout
-            </button>
-          </div>
-        </aside>
-
-        <main className="flex-1 overflow-y-auto p-4 md:p-8">
-          <div className="max-w-6xl mx-auto">
-            <Breadcrumbs />
-            {children}
-          </div>
-        </main>
-
-        <div className="md:hidden border-t border-white/5 p-2 bg-yugo-primary/80">
-          <button
-            onClick={handleLogout}
-            className="w-full text-center py-3 text-red-400 font-medium active:bg-red-500/10 rounded-lg transition-colors"
-          >
-             Logout
-          </button>
+        <div className="flex-1 flex flex-col min-w-0">
+          <MobileTopBar
+            email={email}
+            onLogout={handleLogout}
+            onOpenDrawer={() => setDrawerOpen(true)}
+          />
+          <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto p-4 md:p-8 focus:outline-none">
+            <div className="max-w-6xl mx-auto">{children}</div>
+          </main>
         </div>
+
+        <MobileDrawer
+          open={drawerOpen}
+          onClose={() => setDrawerOpen(false)}
+          navItems={NAV_ITEMS}
+        />
       </div>
     </UnsavedChangesProvider>
   );

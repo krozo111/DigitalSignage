@@ -13,12 +13,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-yugo-accent hover:bg-yugo-accent/90 text-yugo-primary font-bold",
+    "bg-accent hover:bg-accent/90 text-on-accent font-bold",
   secondary:
-    "bg-yugo-secondary hover:bg-yugo-secondary/90 text-yugo-primary font-bold",
-  danger: "bg-red-600 hover:bg-red-700 text-white font-medium",
+    "bg-success hover:bg-success/90 text-on-accent font-bold",
+  danger: "bg-danger hover:bg-danger text-fg font-medium",
   ghost:
-    "bg-transparent hover:bg-white/5 text-white/60 hover:text-white font-medium",
+    "bg-transparent hover:bg-white/5 text-fg-muted hover:text-fg font-medium",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
@@ -47,6 +47,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={`
           inline-flex items-center justify-center gap-2
           transition-all duration-200 cursor-pointer border-none
+          focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-yugo-primary
           disabled:opacity-50 disabled:cursor-not-allowed
           ${variantStyles[variant]}
           ${sizeStyles[size]}
