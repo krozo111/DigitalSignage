@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase.config";
-import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
@@ -14,7 +13,6 @@ export default function AdminLogin() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { user } = useAuth();
   const router = useRouter();
 
   const [isMounted, setIsMounted] = useState(false);
@@ -23,26 +21,35 @@ export default function AdminLogin() {
     setIsMounted(true);
   }, []);
 
-  useEffect(() => {
-    if (user) router.push("/admin");
-  }, [user, router]);
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push("/admin");
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const idToken = await cred.user.getIdToken();
+
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      });
+
+      if (!res.ok) {
+        await signOut(auth);
+        setError("Login failed: server rejected session.");
+        return;
+      }
+
+      router.replace("/admin");
+      router.refresh();
     } catch {
       setError("Login failed: Check your credentials.");
     } finally {
       setLoading(false);
     }
   };
-
-  if (user) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-white/40">Redirecting...</div>;
 
   if (!isMounted) return <div className="min-h-screen bg-yugo-primary flex items-center justify-center text-white/40">Loading...</div>;
 
