@@ -36,16 +36,18 @@ export function PlaylistList({ playlists, onEdit, onDuplicate, onDelete }: Playl
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {playlists.map((pl) => (
-          <PlaylistCard
-            key={pl.id}
-            playlist={pl}
-            onEdit={onEdit}
-            onDuplicate={onDuplicate}
-            onDelete={setDeleteTarget}
-          />
-        ))}
+      <div className="overflow-hidden rounded-xl border border-border bg-border">
+        <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 lg:grid-cols-3">
+          {playlists.map((pl) => (
+            <PlaylistCard
+              key={pl.id}
+              playlist={pl}
+              onEdit={onEdit}
+              onDuplicate={onDuplicate}
+              onDelete={setDeleteTarget}
+            />
+          ))}
+        </div>
       </div>
 
       <ConfirmDialog

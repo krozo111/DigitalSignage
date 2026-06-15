@@ -1,5 +1,4 @@
 import { MediaItem } from "@/lib/services/mediaService";
-import { Card } from "@/components/ui/Card";
 import { TrashIcon } from "@/components/icons";
 
 interface MediaCardProps {
@@ -9,7 +8,7 @@ interface MediaCardProps {
 
 export function MediaCard({ item, onDelete }: MediaCardProps) {
   return (
-    <Card className="overflow-hidden group">
+    <div className="group bg-surface-1 transition-colors hover:bg-surface-2">
       <div className="aspect-square bg-surface-2 relative">
         {item.type === "vid" ? (
           <video
@@ -27,10 +26,10 @@ export function MediaCard({ item, onDelete }: MediaCardProps) {
             loading="lazy"
           />
         )}
-        <div className="absolute inset-0 bg-surface-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+        <div className="absolute inset-0 bg-background/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
           <button
             onClick={() => onDelete(item)}
-            className="bg-danger text-fg p-2.5 rounded-full hover:bg-danger/90 transition shadow-lg"
+            className="bg-danger text-on-danger p-2.5 rounded-full hover:bg-danger/90 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             aria-label={`Delete ${item.name}`}
           >
             <TrashIcon size={18} />
@@ -38,12 +37,12 @@ export function MediaCard({ item, onDelete }: MediaCardProps) {
         </div>
       </div>
       <div className="p-3">
-        <p className="text-sm font-medium text-fg truncate">{item.name}</p>
-        <p className="text-xs text-fg-subtle mt-1 flex justify-between uppercase font-bold tracking-wider">
+        <p className="text-label text-fg truncate">{item.name}</p>
+        <p className="mt-1 flex justify-between font-mono text-meta text-fg-subtle tnum">
           <span>{(item.size / 1024 / 1024).toFixed(1)} MB</span>
-          <span>{item.type}</span>
+          <span className="uppercase">{item.type}</span>
         </p>
       </div>
-    </Card>
+    </div>
   );
 }

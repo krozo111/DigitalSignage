@@ -1,8 +1,9 @@
 import { db, storage, auth } from "../firebase.config";
 import {
-  collection, addDoc, deleteDoc, doc, getDocs, orderBy, query, serverTimestamp, Timestamp,
+  collection, addDoc, doc, getDocs, orderBy, query, serverTimestamp, writeBatch, Timestamp,
 } from "firebase/firestore";
 import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from "firebase/storage";
+import type { PlaylistItem } from "./playlistService";
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
@@ -126,12 +127,14 @@ export const getAllMedia = async (): Promise<MediaItem[]> => {
 };
 
 /**
- * Elimina un recurso de Storage y luego de Firestore
+ * Elimina un recurso de Storage, lo quita de cualquier playlist que lo referencie
+ * (reindexando el orden) y borra el documento de Firestore. La limpieza de playlists
+ * + el borrado del doc se hacen en un batch atómico para no dejar items colgando.
  */
 export const deleteMedia = async (id: string, storagePath: string): Promise<void> => {
   assertAuth();
 
-  // 1. Remove from Storage
+  // 1. Remove from Storage (idempotent: a missing object is fine)
   const storageRef = ref(storage, storagePath);
   try {
     await deleteObject(storageRef);
@@ -142,6 +145,21 @@ export const deleteMedia = async (id: string, storagePath: string): Promise<void
     }
   }
 
-  // 2. Remove document from Firestore
-  await deleteDoc(doc(db, "media", id));
+  // 2. Strip this media from every playlist that uses it, then delete the doc.
+  // Firestore can't query an array of objects by a nested field, so we scan
+  // playlists and filter in memory — acceptable at this catalog size.
+  const batch = writeBatch(db);
+  const playlistsSnap = await getDocs(collection(db, "playlists"));
+  playlistsSnap.forEach((plDoc) => {
+    const items = (plDoc.data().items ?? []) as PlaylistItem[];
+    if (items.some((item) => item.mediaId === id)) {
+      const filtered = items
+        .filter((item) => item.mediaId !== id)
+        .map((item, index) => ({ ...item, order: index }));
+      batch.update(plDoc.ref, { items: filtered, updatedAt: serverTimestamp() });
+    }
+  });
+  batch.delete(doc(db, "media", id));
+
+  await batch.commit();
 };

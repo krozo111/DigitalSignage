@@ -37,8 +37,24 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const now = Date.now();
     const last = lastRevokeCheck.get(decoded.sub) ?? 0;
     if (now - last > REVOKE_CHECK_INTERVAL_MS) {
-      await auth.verifySessionCookie(sessionCookie, true);
-      lastRevokeCheck.set(decoded.sub, now);
+      try {
+        await auth.verifySessionCookie(sessionCookie, true);
+        lastRevokeCheck.set(decoded.sub, now);
+      } catch (revokeErr) {
+        // Only genuine revocation/expiry should end the session. A transient
+        // network error talking to Firebase must NOT log the admin out — the
+        // base verify above already succeeded. We retry the revoke check on
+        // the next interval. (The in-memory throttle map doesn't survive
+        // serverless cold starts, so this call runs on most requests.)
+        const code = (revokeErr as { code?: string }).code;
+        if (
+          code === "auth/session-cookie-revoked" ||
+          code === "auth/session-cookie-expired" ||
+          code === "auth/user-disabled"
+        ) {
+          return null;
+        }
+      }
     }
 
     return { uid: decoded.uid, email: decoded.email };

@@ -28,10 +28,12 @@ export function MediaGrid({ items, searchQuery, onDelete }: MediaGridProps) {
 
   return (
     <>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-        {displayed.map((item) => (
-          <MediaCard key={item.id} item={item} onDelete={onDelete} />
-        ))}
+      <div className="overflow-hidden rounded-xl border border-border bg-border">
+        <div className="grid grid-cols-2 gap-px bg-border sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+          {displayed.map((item) => (
+            <MediaCard key={item.id} item={item} onDelete={onDelete} />
+          ))}
+        </div>
       </div>
       {hasMore && (
         <div className="text-center mt-4">

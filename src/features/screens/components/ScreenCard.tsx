@@ -1,26 +1,10 @@
 import { useMemo } from "react";
 import { Screen } from "@/lib/services/screenService";
 import { Playlist } from "@/lib/services/playlistService";
-import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Select } from "@/components/ui/Select";
-import { ScreenIcon } from "@/components/icons";
-
-const STALE_THRESHOLD_MS = 5 * 60 * 1000;
-
-type StatusTone = "neutral" | "success" | "warning";
-
-function deriveStatus(screen: Screen): { label: string; tone: StatusTone } {
-  if (screen.pairingCode) return { label: "Unpaired", tone: "warning" };
-
-  const lastSeen = screen.lastSeen;
-  if (!lastSeen) return { label: "Unknown", tone: "neutral" };
-
-  const diff = Date.now() - lastSeen.toMillis();
-  if (diff < STALE_THRESHOLD_MS) return { label: "Online", tone: "success" };
-  return { label: "Offline", tone: "neutral" };
-}
+import { StatusDot } from "@/components/ui/StatusDot";
+import { isScreenOnline, relativeTime } from "@/lib/screenStatus";
 
 interface ScreenCardProps {
   screen: Screen;
@@ -30,41 +14,40 @@ interface ScreenCardProps {
 }
 
 export function ScreenCard({ screen, playlists, onAssignPlaylist, onDelete }: ScreenCardProps) {
-  const status = deriveStatus(screen);
+  const online = isScreenOnline(screen);
   const options = useMemo(
     () => [
       { value: "", label: "No Playlist" },
-      ...playlists.map(pl => ({ value: pl.id, label: pl.name })),
+      ...playlists.map((pl) => ({ value: pl.id, label: pl.name })),
     ],
     [playlists]
   );
 
   return (
-    <Card padding="md" className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group">
-      <div className="flex items-center gap-4 w-full sm:w-auto">
-        <div className="h-12 w-12 bg-surface-2 border border-border rounded-lg flex items-center justify-center text-fg-muted group-hover:bg-accent-soft group-hover:text-accent transition-colors">
-          <ScreenIcon size={24} />
-        </div>
-        <div>
-          <h4 className="font-bold text-lg text-fg truncate max-w-[200px]">{screen.name}</h4>
-          <Badge tone={status.tone} dot className="mt-1">
-            {status.label}
-          </Badge>
-        </div>
+    <div className="flex flex-col gap-4 bg-surface-1 p-5 transition-colors hover:bg-surface-2">
+      <div className="flex items-center justify-between gap-2">
+        <span className="flex min-w-0 items-center gap-2">
+          <StatusDot online={online} />
+          <span className="truncate text-label font-semibold text-fg">{screen.name}</span>
+          <span className="sr-only">{screen.pairingCode ? "unpaired" : online ? "online" : "offline"}</span>
+        </span>
+        <span className="shrink-0 font-mono text-meta text-fg-subtle tnum">
+          {screen.pairingCode ? "unpaired" : relativeTime(screen.lastSeen)}
+        </span>
       </div>
 
-      <div className="w-full sm:w-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+      <div className="mt-auto flex flex-col gap-2 sm:flex-row">
         <Select
           value={screen.playlistId || ""}
           onChange={(e) => onAssignPlaylist(screen.id, screen.name, e.target.value)}
           options={options}
           aria-label={`Assign playlist for ${screen.name}`}
-          className="w-full sm:w-48 py-2 text-sm"
+          className="flex-1 py-2 text-sm"
         />
         <Button variant="danger" size="sm" onClick={() => onDelete(screen.id)}>
           Delete
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

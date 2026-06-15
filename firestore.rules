@@ -10,8 +10,13 @@ service cloud.firestore {
       return true;
     }
 
+    // Admin authorization.
+    // IMPORTANT: being authenticated is NOT enough — the account must carry the
+    // `admin: true` custom claim, set out-of-band via the Admin SDK
+    // (see scripts/set-admin-claim.mjs). This prevents any random Firebase
+    // account (e.g. self-signup) from gaining read/write access to app data.
     function isAdmin() {
-      return request.auth != null;
+      return request.auth != null && request.auth.token.admin == true;
     }
 
     // ============================================================

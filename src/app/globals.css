@@ -182,7 +182,7 @@ body {
      .text-display  brand wordmark on standalone pages (login, signup, splash)
      .text-h1       page titles (PageHeader)
      .text-h2       section headings, sidebar wordmark in shell
-     .text-stat     hero metric (StatCard value) — tabular-nums baked in
+     .text-stat     hero metric (dashboard network status) tabular-nums baked in
      .text-label    UI labels, nav rows, buttons
      .text-eyebrow  uppercase tags above headings, stat labels
      .text-meta     captions, metadata, helper text under inputs

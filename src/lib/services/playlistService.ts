@@ -1,6 +1,6 @@
 import { db, auth } from "../firebase.config";
 import {
-  collection, addDoc, updateDoc, deleteDoc, doc, getDoc, getDocs, serverTimestamp, query, orderBy, Timestamp,
+  collection, addDoc, updateDoc, doc, getDoc, getDocs, serverTimestamp, query, orderBy, where, writeBatch, Timestamp,
 } from "firebase/firestore";
 
 // Helper to strictly require Auth
@@ -82,11 +82,23 @@ export const updatePlaylist = async (id: string, name: string, items: PlaylistIt
 };
 
 /**
- * Elimina la lista de reproducción
- * Nota: Puede que necesites manejar lógica adicional si la lista estaba asignada a alguna pantalla.
+ * Elimina la lista de reproducción y desasigna (playlistId = null) cualquier
+ * pantalla que la estuviera usando, en una sola escritura atómica. Sin esto las
+ * pantallas quedarían apuntando a un doc inexistente y caerían en idle en silencio.
  */
 export const deletePlaylist = async (id: string): Promise<void> => {
   assertAuth();
 
-  await deleteDoc(doc(db, "playlists", id));
+  const batch = writeBatch(db);
+
+  const assignedScreens = await getDocs(
+    query(collection(db, "screens"), where("playlistId", "==", id))
+  );
+  assignedScreens.forEach((screenDoc) => {
+    batch.update(screenDoc.ref, { playlistId: null, updatedAt: serverTimestamp() });
+  });
+
+  batch.delete(doc(db, "playlists", id));
+
+  await batch.commit();
 };

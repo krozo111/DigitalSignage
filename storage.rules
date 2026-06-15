@@ -7,7 +7,11 @@ service firebase.storage {
       // effectively "anyone with the link".
       allow read: if true;
 
+      // Writes require the admin custom claim (not just any authenticated user),
+      // so a random self-signup account can't use the bucket as free/malware
+      // hosting. The admin still writes under its own uid path.
       allow create, update: if request.auth != null
+        && request.auth.token.admin == true
         && request.auth.uid == userId
         && request.resource.size < 52 * 1024 * 1024
         && (
@@ -16,6 +20,7 @@ service firebase.storage {
         );
 
       allow delete: if request.auth != null
+        && request.auth.token.admin == true
         && request.auth.uid == userId;
     }
   }

@@ -135,23 +135,31 @@ export default function Home() {
           [...(plData.items || [])].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
         (async () => {
-          const resolvedItems: PlaybackItem[] = [];
-          for (const item of plItems) {
-            try {
-              const mediaDoc = await getDoc(doc(db, "media", item.mediaId));
-              if (mediaDoc.exists()) {
-                const md = mediaDoc.data();
-                resolvedItems.push({
-                  id: item.mediaId,
-                  url: md.url,
-                  type: md.type,
-                  duration: item.duration,
-                });
+          // Resolve all media docs in parallel. Awaiting inside a for-loop
+          // turned a 20-item playlist into 20 serial round-trips; Promise.all
+          // collapses that into one. Order is preserved by mapping over plItems.
+          const resolved = await Promise.all(
+            plItems.map(async (item) => {
+              try {
+                const mediaDoc = await getDoc(doc(db, "media", item.mediaId));
+                if (mediaDoc.exists()) {
+                  const md = mediaDoc.data();
+                  return {
+                    id: item.mediaId,
+                    url: md.url,
+                    type: md.type,
+                    duration: item.duration,
+                  } as PlaybackItem;
+                }
+              } catch {
+                console.error("Error resolving media", item.mediaId);
               }
-            } catch {
-              console.error("Error resolving media", item.mediaId);
-            }
-          }
+              return null;
+            })
+          );
+          const resolvedItems = resolved.filter(
+            (item): item is PlaybackItem => item !== null
+          );
 
           if (currentResolveId === resolveIdRef.current) {
             setMediaItems(resolvedItems);
@@ -315,7 +323,7 @@ export default function Home() {
       goToNext();
     }, 15000);
     return clearVideoTimer;
-  }, [currentItem?.url, goToNext]);
+  }, [currentItem?.url, currentItem?.type, goToNext]);
 
   const handleVideoReady = () => {
     clearVideoTimer();

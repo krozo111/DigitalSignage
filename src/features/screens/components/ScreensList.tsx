@@ -55,7 +55,7 @@ export function ScreensList({
   return (
     <div>
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
-        <h3 className="text-xl font-bold">My Active Screens</h3>
+        <h2 className="text-h2 text-fg">My Active Screens</h2>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           {screens.length > 0 && (
             <Input
@@ -82,16 +82,18 @@ export function ScreensList({
           description={searchQuery ? undefined : "Enter a pairing code above to add one."}
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {filteredScreens.map(screen => (
-            <ScreenCard
-              key={screen.id}
-              screen={screen}
-              playlists={playlists}
-              onAssignPlaylist={onUpdatePlaylist}
-              onDelete={setDeleteTarget}
-            />
-          ))}
+        <div className="overflow-hidden rounded-xl border border-border bg-border">
+          <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
+            {filteredScreens.map(screen => (
+              <ScreenCard
+                key={screen.id}
+                screen={screen}
+                playlists={playlists}
+                onAssignPlaylist={onUpdatePlaylist}
+                onDelete={setDeleteTarget}
+              />
+            ))}
+          </div>
         </div>
       )}
 

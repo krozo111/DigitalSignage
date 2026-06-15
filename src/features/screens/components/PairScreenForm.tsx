@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { errorMessage } from "@/lib/errors";
 import { Playlist } from "@/lib/services/playlistService";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { LinkIcon } from "@/components/icons";
@@ -59,10 +58,10 @@ export function PairScreenForm({ playlists, onClaim }: PairScreenFormProps) {
   };
 
   return (
-    <Card padding="lg">
-      <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-fg">
+    <div className="rounded-xl border border-border bg-surface-1 p-6">
+      <h2 className="text-h2 mb-4 flex items-center gap-2 text-fg">
         <LinkIcon className="text-accent" /> Pair New Screen
-      </h3>
+      </h2>
       <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-end">
         <div className="w-full md:w-auto flex-1">
           <Input
@@ -103,9 +102,9 @@ export function PairScreenForm({ playlists, onClaim }: PairScreenFormProps) {
           />
         </div>
         <Button type="submit" disabled={claiming} loading={claiming} className="w-full md:w-auto">
-          {claiming ? "Connecting..." : "Pair"}
+          {claiming ? "Connecting" : "Pair"}
         </Button>
       </form>
-    </Card>
+    </div>
   );
 }
