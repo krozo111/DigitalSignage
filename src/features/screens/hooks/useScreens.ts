@@ -48,7 +48,7 @@ export function useScreens() {
   );
 
   const updatePlaylist = useCallback(
-    async (screenId: string, screenName: string, playlistId: string) => {
+    async (screenId: string, screenName: string, playlistId: string | null) => {
       try {
         await updateScreenDetails(screenId, screenName, playlistId);
         setScreens(prev =>

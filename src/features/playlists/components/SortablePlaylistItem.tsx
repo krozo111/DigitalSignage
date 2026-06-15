@@ -33,7 +33,7 @@ export function SortablePlaylistItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 bg-surface-1 border p-3 rounded-lg shadow-sm ${
+      className={`flex items-center gap-3 bg-surface-1 border p-3 rounded-lg transition-colors ${
         isDragging
           ? "z-50 border-accent"
           : isBroken
@@ -56,27 +56,27 @@ export function SortablePlaylistItem({
         }`}
       >
         {isBroken ? (
-          <span className="text-danger text-xs font-bold">MISSING</span>
+          <span className="text-danger text-meta font-semibold">MISSING</span>
         ) : item.type === "vid" ? (
           <video src={item.url} className="h-full w-full object-cover" />
         ) : (
-          <img src={item.url} className="h-full w-full object-cover" />
+          <img src={item.url} alt="" className="h-full w-full object-cover" />
         )}
       </div>
 
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium truncate ${isBroken ? "text-danger" : "text-fg"}`}>
+        <p className={`text-label truncate ${isBroken ? "text-danger" : "text-fg"}`}>
           {item.name}
-          {isBroken && <span className="ml-2 text-xs text-danger/60">(deleted)</span>}
+          {isBroken && <span className="ml-2 text-meta text-danger/60">(deleted)</span>}
         </p>
         <div className="flex items-center gap-2 mt-2">
-          <label className="text-xs text-fg-subtle">Duration (sec):</label>
+          <label className="text-meta text-fg-subtle">Duration (sec):</label>
           <input
             type="number"
             min="1"
             value={item.duration}
             onChange={(e) => onUpdateDuration(index, parseInt(e.target.value) || 1)}
-            className="w-20 bg-surface-2 border border-border-strong rounded px-2 py-1 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-accent"
+            className="w-20 bg-surface-2 border border-border-strong rounded px-2 py-1 text-label text-fg font-mono tnum focus:outline-none focus:ring-1 focus:ring-accent"
             aria-label={`Duration for ${item.name}`}
           />
         </div>

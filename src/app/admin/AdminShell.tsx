@@ -1,16 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
 import { useAuth } from "@/context/AuthContext";
 import { UnsavedChangesProvider } from "@/context/UnsavedChangesContext";
 import { auth } from "@/lib/firebase.config";
-import { MobileDrawer } from "@/components/admin/MobileDrawer";
-import { MobileTopBar } from "@/components/admin/MobileTopBar";
+import { MobileTabBar } from "@/components/admin/MobileTabBar";
+import { TopBar } from "@/components/admin/TopBar";
 import { NAV_ITEMS } from "@/components/admin/navItems";
-import { Sidebar } from "@/components/admin/Sidebar";
-import { useSidebarCollapsed } from "@/components/admin/useSidebarCollapsed";
 
 interface AdminShellProps {
   children: React.ReactNode;
@@ -20,9 +17,7 @@ interface AdminShellProps {
 export function AdminShell({ children, serverEmail }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
-  const { collapsed, toggle } = useSidebarCollapsed();
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const { user } = useAuth();
 
   const handleLogout = async () => {
     try {
@@ -32,13 +27,12 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
     router.push("/admin/login");
   };
 
-  // If Firebase client-side auth gets out of sync with the server session
-  // (e.g. token revoked elsewhere), force re-login.
-  useEffect(() => {
-    if (!loading && !user && pathname !== "/admin/login") {
-      router.push("/admin/login");
-    }
-  }, [user, loading, pathname, router]);
+  // Route protection is owned by the server (middleware + the admin layout's
+  // getAdminSession check). We deliberately do NOT redirect based on the
+  // Firebase client `user`: a transient null (token refresh, App Check hiccup,
+  // multi-tab) would otherwise fight the middleware and bounce the admin
+  // between /admin and /admin/login. The httpOnly session cookie is the source
+  // of truth; genuine revocation is caught server-side on the next navigation.
 
   if (pathname === "/admin/login") {
     return <>{children}</>;
@@ -54,35 +48,18 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
       >
         Skip to main content
       </a>
-      <div className="flex h-screen text-fg flex-col md:flex-row">
-        <Sidebar
-          collapsed={collapsed}
-          onToggle={toggle}
-          email={email}
-          onLogout={handleLogout}
-          navItems={NAV_ITEMS}
-        />
+      <div className="flex h-screen flex-col text-fg">
+        <TopBar email={email} onLogout={handleLogout} navItems={NAV_ITEMS} />
 
-        <div className="flex-1 flex flex-col min-w-0">
-          <MobileTopBar
-            email={email}
-            onLogout={handleLogout}
-            onOpenDrawer={() => setDrawerOpen(true)}
-          />
-          <main
-            id="main-content"
-            tabIndex={-1}
-            className="flex-1 overflow-y-auto px-4 py-6 md:px-10 md:py-10 focus:outline-none"
-          >
-            <div className="max-w-6xl mx-auto">{children}</div>
-          </main>
-        </div>
+        <main
+          id="main-content"
+          tabIndex={-1}
+          className="flex-1 overflow-y-auto px-4 py-6 md:px-8 md:py-10 focus:outline-none"
+        >
+          <div className="max-w-6xl mx-auto">{children}</div>
+        </main>
 
-        <MobileDrawer
-          open={drawerOpen}
-          onClose={() => setDrawerOpen(false)}
-          navItems={NAV_ITEMS}
-        />
+        <MobileTabBar navItems={NAV_ITEMS} />
       </div>
     </UnsavedChangesProvider>
   );

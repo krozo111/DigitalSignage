@@ -1,6 +1,5 @@
 import { Playlist } from "@/lib/services/playlistService";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 
 interface PlaylistCardProps {
   playlist: Playlist;
@@ -10,17 +9,16 @@ interface PlaylistCardProps {
 }
 
 export function PlaylistCard({ playlist, onEdit, onDuplicate, onDelete }: PlaylistCardProps) {
+  const count = playlist.items.length;
   return (
-    <Card padding="md" className="flex flex-col justify-between group">
+    <div className="flex flex-col justify-between gap-4 bg-surface-1 p-5 transition-colors hover:bg-surface-2">
       <div>
-        <h3 className="text-lg font-bold text-fg truncate group-hover:text-accent transition-colors">
-          {playlist.name}
-        </h3>
-        <p className="text-sm text-fg-subtle mt-1">
-          {playlist.items.length} resources assigned
+        <h3 className="truncate text-label font-semibold text-fg">{playlist.name}</h3>
+        <p className="mt-1 font-mono text-meta text-fg-subtle tnum">
+          {count} item{count === 1 ? "" : "s"}
         </p>
       </div>
-      <div className="flex justify-end gap-2 mt-4 pt-4 border-t border-border">
+      <div className="flex justify-end gap-2">
         <Button variant="ghost" size="sm" onClick={() => onEdit(playlist)}>
           Edit
         </Button>
@@ -31,6 +29,6 @@ export function PlaylistCard({ playlist, onEdit, onDuplicate, onDelete }: Playli
           Delete
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

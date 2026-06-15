@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-05-27T00:00:00Z",
+  "generatedAt": "2026-06-16T00:00:00Z",
   "title": "Design System: Yugo Signage",
   "extensions": {
     "colorMeta": {
@@ -26,32 +26,28 @@
     "typographyMeta": {
       "display": { "displayName": "Display",  "purpose": "Brand wordmark on standalone pages (login, register, player splashes)." },
       "h1":      { "displayName": "Heading 1", "purpose": "Page titles via PageHeader." },
-      "h2":      { "displayName": "Heading 2", "purpose": "Section headings, sidebar wordmark, modal titles." },
-      "stat":    { "displayName": "Stat",      "purpose": "Hero metric on StatCard. Tabular numerics baked in." },
-      "label":   { "displayName": "Label",     "purpose": "UI labels, nav rows, buttons, body text. The workhorse." },
-      "eyebrow": { "displayName": "Eyebrow",   "purpose": "Uppercase tags above headings and stat-card category labels." },
-      "meta":    { "displayName": "Meta",      "purpose": "Captions, helper text under inputs, secondary metadata." },
-      "mono":    { "displayName": "Mono",      "purpose": "Pairing codes, screen IDs, file paths. Geist Mono." }
+      "h2":      { "displayName": "Heading 2", "purpose": "Section headings, panel titles, sidebar wordmark, dialog titles." },
+      "stat":    { "displayName": "Stat",      "purpose": "Hero numeric on the dashboard network readout. Tabular numerics baked in." },
+      "label":   { "displayName": "Label",     "purpose": "UI labels, nav rows, buttons, tile titles, body text. The workhorse." },
+      "eyebrow": { "displayName": "Eyebrow",   "purpose": "Section eyebrows, panel category labels, tab labels." },
+      "meta":    { "displayName": "Meta",      "purpose": "Captions, helper text, secondary metadata." },
+      "mono":    { "displayName": "Mono",      "purpose": "All reported data: counts, sizes, durations, timestamps, IDs, pairing codes. Geist Mono with tabular numerics." }
     },
     "shadows": [
-      { "name": "inset-top-edge",  "value": "0 1px 0 oklch(1 0 0 / 0.04) inset",                                                  "purpose": "Ambient lift on every surface card." },
-      { "name": "card-lift",       "value": "0 1px 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5)",            "purpose": "Default Card elevation." },
-      { "name": "stat-lift",       "value": "0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 28px -16px oklch(0 0 0 / 0.6)",           "purpose": "StatCard elevation; deeper drop so the metric reads as primary." },
-      { "name": "drawer-cast",     "value": "8px 0 32px -12px oklch(0 0 0 / 0.6)",                                                "purpose": "Mobile nav drawer casting onto the dimmed body." },
-      { "name": "menu-cast",       "value": "0 24px 60px -20px oklch(0 0 0 / 0.7)",                                               "purpose": "Account menus, dropdowns, login card." },
-      { "name": "primary-cta-halo","value": "0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 20px -10px oklch(0.81 0.155 75 / 0.6)",    "purpose": "Inset top-edge highlight plus a warm gold drop behind primary buttons. Earned, not decorative." },
-      { "name": "sidebar-seam",    "value": "1px 0 0 oklch(1 0 0 / 0.03) inset",                                                  "purpose": "Single-pixel highlight along the inner edge of the desktop sidebar." }
+      { "name": "status-glow",     "value": "0 0 8px currentColor",                                                              "purpose": "The only always-on glow, on a mint online dot, so live reads at a glance." },
+      { "name": "primary-cta-halo","value": "0 1px 0 oklch(1 0 0 / 0.25) inset, 0 8px 20px -10px oklch(0.81 0.155 75 / 0.6)",    "purpose": "Inset top-edge highlight plus a warm gold drop behind the single primary button. Earned, not decorative." },
+      { "name": "menu-cast",       "value": "0 24px 60px -20px oklch(0 0 0 / 0.7)",                                               "purpose": "Account menus, dropdowns, login card, modal dialogs. The only cast shadow for floating layers." }
     ],
     "motion": [
       { "name": "ease-out-quart",  "value": "cubic-bezier(0.22, 1, 0.36, 1)", "purpose": "Default ease-out for fades and reveals. Exponential, no bounce." },
       { "name": "ease-in-quart",   "value": "cubic-bezier(0.4, 0, 1, 1)",     "purpose": "Ease-in counterpart for fade-out." },
       { "name": "duration-fast",   "value": "150ms",                          "purpose": "Hover and color transitions." },
-      { "name": "duration-base",   "value": "200ms",                          "purpose": "Fades, menu open/close, drawer." },
+      { "name": "duration-base",   "value": "200ms",                          "purpose": "Fades, menu open/close." },
       { "name": "duration-shell",  "value": "200ms",                          "purpose": "Sidebar collapse width transition (the one layout-prop exception)." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
-      { "name": "md", "value": "768px",  "purpose": "Mobile → desktop shell switchover. Below md: top bar + drawer. At/above md: persistent sidebar." },
+      { "name": "md", "value": "768px",  "purpose": "Mobile → desktop shell switchover. Below md: top bar (wordmark + account) plus bottom tab bar. At/above md: a single top bar with inline nav tabs, no side rail." },
       { "name": "lg", "value": "1024px" },
       { "name": "xl", "value": "1280px" }
     ]
@@ -90,20 +86,28 @@
       "css": ".ds-field { display: flex; flex-direction: column; gap: 0.375rem; } .ds-field-label { font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; color: oklch(0.985 0.004 80); } .ds-input { background: oklch(0.24 0.034 290); color: oklch(0.985 0.004 80); border: 1px solid oklch(0.985 0.004 80 / 0.14); border-radius: 0.5rem; padding: 0.625rem 1rem; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.35; transition: border-color 150ms, box-shadow 150ms; } .ds-input::placeholder { color: oklch(0.985 0.004 80 / 0.46); } .ds-input:focus { outline: none; border-color: transparent; box-shadow: 0 0 0 2px oklch(0.81 0.155 75); }"
     },
     {
-      "name": "Card",
+      "name": "Panel",
       "kind": "card",
-      "refersTo": "card",
-      "description": "Surface-1 panel with ghost-thin border, inset-top-edge highlight, soft drop.",
-      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Screen status</h3><p class=\"ds-card-body\">Five screens registered. Four currently online.</p></div>",
-      "css": ".ds-card { background: oklch(0.20 0.028 290); border: 1px solid oklch(0.985 0.004 80 / 0.07); border-radius: 0.75rem; padding: 1.5rem; box-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 8px 24px -12px oklch(0 0 0 / 0.5); } .ds-card-title { margin: 0 0 0.5rem; font-family: Geist, system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.012em; color: oklch(0.985 0.004 80); } .ds-card-body { margin: 0; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.35; color: oklch(0.985 0.004 80 / 0.66); }"
+      "refersTo": "panel",
+      "description": "The flat replacement for the old floating Card. Surface-1 with a hairline border, no drop shadow at rest.",
+      "html": "<div class=\"ds-panel\"><h3 class=\"ds-panel-title\">Pair new screen</h3><p class=\"ds-panel-body\">Enter the six-character code shown on the TV to claim it.</p></div>",
+      "css": ".ds-panel { background: oklch(0.20 0.028 290); border: 1px solid oklch(0.985 0.004 80 / 0.07); border-radius: 0.75rem; padding: 1.5rem; } .ds-panel-title { margin: 0 0 0.5rem; font-family: Geist, system-ui, sans-serif; font-size: 1.125rem; font-weight: 600; line-height: 1.3; letter-spacing: -0.012em; color: oklch(0.985 0.004 80); } .ds-panel-body { margin: 0; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.35; color: oklch(0.985 0.004 80 / 0.66); }"
     },
     {
-      "name": "Stat Card",
-      "kind": "card",
-      "refersTo": "card",
-      "description": "Dashboard hero pattern: eyebrow + icon pill + Stat number + meta + footer link.",
-      "html": "<div class=\"ds-stat\"><div class=\"ds-stat-head\"><span class=\"ds-stat-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 22h8\"/></svg></span><span class=\"ds-eyebrow\">Linked Screens</span></div><div class=\"ds-stat-row\"><span class=\"ds-stat-value\">4</span><span class=\"ds-stat-aux\">/ 5 registered</span></div><p class=\"ds-stat-meta\"><span class=\"ds-stat-dot\"></span>3 currently online</p><a class=\"ds-stat-link\" href=\"#\">Manage screens <span aria-hidden=\"true\">→</span></a></div>",
-      "css": ".ds-stat { background: oklch(0.20 0.028 290); border: 1px solid oklch(0.985 0.004 80 / 0.07); border-radius: 0.75rem; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; box-shadow: 0 1px 0 oklch(1 0 0 / 0.04) inset, 0 12px 28px -16px oklch(0 0 0 / 0.6); font-family: Geist, system-ui, sans-serif; color: oklch(0.985 0.004 80); } .ds-stat-head { display: flex; align-items: center; gap: 0.625rem; } .ds-stat-icon { width: 1.75rem; height: 1.75rem; border-radius: 0.5rem; display: inline-flex; align-items: center; justify-content: center; background: oklch(0.78 0.12 165 / 0.13); color: oklch(0.78 0.12 165); } .ds-eyebrow { font-size: 0.6875rem; font-weight: 600; line-height: 1.2; letter-spacing: 0.075em; text-transform: uppercase; color: oklch(0.985 0.004 80 / 0.66); } .ds-stat-row { display: flex; align-items: baseline; gap: 0.625rem; margin-top: 1rem; } .ds-stat-value { font-size: 2.25rem; font-weight: 700; line-height: 1; letter-spacing: -0.025em; font-variant-numeric: tabular-nums; } .ds-stat-aux { font-size: 0.75rem; color: oklch(0.985 0.004 80 / 0.46); font-variant-numeric: tabular-nums; } .ds-stat-meta { margin: 0.75rem 0 0; font-size: 0.75rem; color: oklch(0.78 0.12 165); display: inline-flex; align-items: center; gap: 0.375rem; } .ds-stat-dot { width: 0.375rem; height: 0.375rem; border-radius: 999px; background: oklch(0.78 0.12 165); box-shadow: 0 0 8px currentColor; } .ds-stat-link { margin-top: auto; font-size: 0.875rem; font-weight: 500; color: oklch(0.81 0.155 75); text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; } .ds-stat-link:hover { color: oklch(0.74 0.165 70); }"
+      "name": "Screen Tile",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "A cell on the screen-wall grid. Status dot + name, mono relative time, current playlist. Online derives from lastSeen freshness.",
+      "html": "<div class=\"ds-tile\"><div class=\"ds-tile-head\"><span class=\"ds-tile-id\"><span class=\"ds-dot ds-dot--on\"></span><span class=\"ds-tile-name\">Lobby</span></span><span class=\"ds-tile-time\">now</span></div><span class=\"ds-tile-list\"><svg viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h11M3 12h11M3 18h7M18 5v9M18 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z\"/></svg>Promos Q2</span></div>",
+      "css": ".ds-tile { display: flex; flex-direction: column; gap: 0.75rem; background: oklch(0.20 0.028 290); padding: 1.25rem; font-family: Geist, system-ui, sans-serif; transition: background-color 150ms; } .ds-tile:hover { background: oklch(0.24 0.034 290); } .ds-tile-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; } .ds-tile-id { display: inline-flex; align-items: center; gap: 0.5rem; min-width: 0; } .ds-dot { width: 0.5rem; height: 0.5rem; border-radius: 999px; flex-shrink: 0; } .ds-dot--on { background: oklch(0.78 0.12 165); color: oklch(0.78 0.12 165); box-shadow: 0 0 8px currentColor; } .ds-dot--off { border: 1px solid oklch(0.985 0.004 80 / 0.46); } .ds-tile-name { font-size: 0.875rem; font-weight: 600; color: oklch(0.985 0.004 80); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-tile-time { flex-shrink: 0; font-family: 'Geist Mono', ui-monospace, monospace; font-size: 0.75rem; color: oklch(0.985 0.004 80 / 0.46); font-variant-numeric: tabular-nums; } .ds-tile-list { display: inline-flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; color: oklch(0.985 0.004 80 / 0.66); } .ds-tile-list svg { color: oklch(0.985 0.004 80 / 0.46); flex-shrink: 0; }"
+    },
+    {
+      "name": "Mobile Tab Bar",
+      "kind": "nav",
+      "refersTo": "nav-tab-active",
+      "description": "Primary mobile navigation, replacing the side drawer. Bottom-fixed, four columns, active icon in a violet pill.",
+      "html": "<nav class=\"ds-tabbar\" aria-label=\"Primary navigation\"><a class=\"ds-tab ds-tab--active\" aria-current=\"page\"><span class=\"ds-tab-pill\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"9\" rx=\"1\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"5\" rx=\"1\"/><rect x=\"14\" y=\"12\" width=\"7\" height=\"9\" rx=\"1\"/><rect x=\"3\" y=\"16\" width=\"7\" height=\"5\" rx=\"1\"/></svg></span><span class=\"ds-tab-label ds-tab-label--active\">Dashboard</span></a><a class=\"ds-tab\"><span class=\"ds-tab-pill\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\"/><circle cx=\"9\" cy=\"9\" r=\"2\"/><path d=\"m21 15-3.5-3.5L8 21\"/></svg></span><span class=\"ds-tab-label\">Media</span></a><a class=\"ds-tab\"><span class=\"ds-tab-pill\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M3 6h11M3 12h11M3 18h7M18 5v9M18 14a2 2 0 1 0 0 4 2 2 0 0 0 0-4Z\"/></svg></span><span class=\"ds-tab-label\">Playlists</span></a><a class=\"ds-tab\"><span class=\"ds-tab-pill\"><svg viewBox=\"0 0 24 24\" width=\"20\" height=\"20\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.5\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 22h8\"/></svg></span><span class=\"ds-tab-label\">Screens</span></a></nav>",
+      "css": ".ds-tabbar { display: grid; grid-template-columns: repeat(4, 1fr); background: oklch(0.22 0.032 290 / 0.92); border-top: 1px solid oklch(0.985 0.004 80 / 0.14); backdrop-filter: blur(12px); } .ds-tab { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; padding: 0.5rem 0; min-height: 3.5rem; text-decoration: none; cursor: pointer; } .ds-tab-pill { display: inline-flex; align-items: center; justify-content: center; height: 2rem; width: 3.5rem; border-radius: 9999px; color: oklch(0.985 0.004 80 / 0.66); transition: background-color 150ms, color 150ms; } .ds-tab--active .ds-tab-pill { background: oklch(0.62 0.21 280 / 0.16); color: oklch(0.62 0.21 280); } .ds-tab-label { font-family: Geist, system-ui, sans-serif; font-size: 0.6875rem; line-height: 1; color: oklch(0.985 0.004 80 / 0.46); } .ds-tab-label--active { color: oklch(0.62 0.21 280); font-weight: 600; } .ds-tab:focus-visible { outline: none; box-shadow: inset 0 0 0 2px oklch(0.81 0.155 75); }"
     },
     {
       "name": "Badge (Info)",
@@ -117,7 +121,7 @@
       "name": "Nav Link (Active)",
       "kind": "nav",
       "refersTo": "nav-link-active",
-      "description": "Sidebar / drawer link. Active state is violet (info), never gold.",
+      "description": "Desktop top-bar nav tab. Active state is violet (info), never gold.",
       "html": "<a class=\"ds-nav ds-nav--active\" href=\"#\" aria-current=\"page\"><svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.75\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"2\" y=\"4\" width=\"20\" height=\"14\" rx=\"2\"/><path d=\"M8 22h8\"/></svg><span>Screens</span></a>",
       "css": ".ds-nav { display: inline-flex; align-items: center; gap: 0.75rem; height: 2.5rem; padding: 0 0.75rem; border-radius: 0.5rem; font-family: Geist, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; line-height: 1.35; text-decoration: none; color: oklch(0.985 0.004 80 / 0.66); transition: background-color 150ms, color 150ms; } .ds-nav:hover { background: oklch(0.985 0.004 80 / 0.04); color: oklch(0.985 0.004 80); } .ds-nav--active { background: oklch(0.62 0.21 280 / 0.16); color: oklch(0.62 0.21 280); box-shadow: inset 0 0 0 1px oklch(0.62 0.21 280 / 0.2); } .ds-nav:focus-visible { outline: none; box-shadow: 0 0 0 2px oklch(0.81 0.155 75); }"
     },
@@ -132,51 +136,54 @@
   ],
   "narrative": {
     "northStar": "The Operator's Console",
-    "overview": "Yugo's admin is a console for one technical operator running five Smart TVs. The interface is a dark indigo workshop with a single gold filament for the next action. It should feel like a tool the operator earned, not a product being sold to them. Calm, low-affect, expert-confident. Closer to a piece of broadcast hardware than a SaaS dashboard.\n\nDensity is earned through hierarchy, not stuffing. Surfaces tint, never gloss. Color carries meaning (status, navigation, danger) and gold is reserved as punctuation for the primary path. The interface does its job and steps out of the way.\n\nThis system explicitly rejects, as named in PRODUCT.md: generic SaaS gradient dashboards (2022–2025), Linear/Vercel visual cosplay, consumer-warm cream tones (Notion-light, Stripe-marketing), crypto and AI terminal aesthetics (neon-on-black, brutalist grids, scanlines), and corporate BI tools (circular brand-color icons, gratuitous charts).",
+    "overview": "Yugo's admin is a live operations console for one technical operator running five Smart TVs. The interface is a dark indigo control surface stitched together by a hairline grid, with instrument-grade data in mono and a single gold filament for the next action. It reads like a piece of broadcast hardware, not a SaaS dashboard: the operator opens it, sees the state of the wall at a glance, makes the change, and leaves.\n\nSurfaces are flat. Depth comes from tonal layering (surface-1 over the body) and 1px seams between cells, not from floating cards with drop shadows. Status is structural: a mint dot for online, a coral row for offline, a violet tab for the current page. Color always carries meaning. Gold is punctuation reserved for the primary path. Calm is earned through hierarchy and dark space, never through hiding information the operator needs.\n\nThis system explicitly rejects, as named in PRODUCT.md: generic SaaS gradient dashboards (2022 to 2025), the hero-metric template, identical-card grids, glassmorphism by default, Linear/Vercel visual cosplay, consumer-warm cream tones (Notion-light, Stripe-marketing), crypto and AI terminal aesthetics (neon-on-black, brutalist grids, scanlines), and corporate BI tools (circular brand-color icons, gratuitous charts).",
     "keyCharacteristics": [
-      "Dark indigo foundation (hue ~290°) with off-axis violet wash on the body.",
-      "Three semantic accents: gold (action), mint (online/success), violet (info, current nav), coral (danger).",
-      "OKLCH throughout. No pure #000 or #fff anywhere.",
-      "Layered surfaces, not glass. Backdrop blur is reserved for sticky bars.",
-      "One sans family (Geist) carries every text role. Mono is reserved for codes and IDs.",
-      "Mobile is a first-class surface, designed for thumb-reach in front of a TV."
+      "Dark indigo foundation (hue ~290°) with a faint off-axis violet body wash. No photo washes behind UI.",
+      "Four semantic accents: gold (action), mint (online/success), violet (info, current nav), coral (danger), with amber for caution.",
+      "OKLCH throughout. No pure #000 or #fff.",
+      "Flat surfaces joined by hairline seams. Collections are a single bordered grid of cells, not a scatter of floating cards.",
+      "Geist Sans carries all UI text. Geist Mono carries all instrument data: counts, sizes, timestamps, IDs, pairing codes.",
+      "Mobile is a first-class surface. A bottom tab bar (not a side drawer) puts navigation under the thumb."
     ],
     "rules": [
-      { "name": "The Punctuation Rule",         "section": "colors",     "body": "Yugo Gold is punctuation, never decoration. It marks the next action, the focused field, or the brand moment. If gold appears on more than ~10% of a screen, the hierarchy has collapsed and the screen is wrong." },
-      { "name": "The No-Pure-Pixel Rule",       "section": "colors",     "body": "No #000, no #fff. Every neutral carries a tiny brand chroma so the system never reads as flat. The closest you go to black is oklch(0.15 0.022 290); the closest to white is oklch(0.985 0.004 80)." },
-      { "name": "The Meaning-Bearing-Color Rule","section": "colors",    "body": "Color names a state: online (mint), current nav (violet), action (gold), danger (coral), caution (amber). Color never decorates. If a colored element doesn't carry one of these meanings, it's the wrong color." },
-      { "name": "The One Voice Rule",           "section": "typography", "body": "A single Geist family covers the whole UI. No display serif, no condensed accents, no second sans. If a design needs a fancy heading, the answer is weight + scale, not a new family." },
-      { "name": "The Tnum Rule",                "section": "typography", "body": "Any column of digits (counts, sizes, durations, IDs, pairing codes) uses tabular numerics. Numbers must not shift width as they update." },
-      { "name": "The Token-Or-Don't Rule",      "section": "typography", "body": "Use text-display / text-h1 / text-h2 / text-stat / text-label / text-eyebrow / text-meta in markup. Stacking text-sm font-medium tracking-tight inline is forbidden; it is how scales drift." },
-      { "name": "The Tonal-First Rule",         "section": "elevation",  "body": "Reach for a lighter surface before a heavier shadow. A card lifts because surface-1 is lighter than the body, not because it has a big drop shadow. Shadows reinforce, they don't carry the elevation alone." },
-      { "name": "The Earned-Halo Rule",         "section": "elevation",  "body": "The gold halo behind primary buttons is reserved for the single primary action on a screen. Two halos on the same screen mean one of them isn't actually primary." }
+      { "name": "The Punctuation Rule",          "section": "colors",     "body": "Yugo Gold is punctuation, never decoration. One gold cluster per screen: the next action, the focused field, or the brand moment. If gold appears on more than ~10% of a screen, the hierarchy has collapsed." },
+      { "name": "The No-Pure-Pixel Rule",        "section": "colors",     "body": "No #000, no #fff. Every neutral carries a tiny brand chroma. The closest to black is oklch(0.15 0.022 290); the closest to white is oklch(0.985 0.004 80)." },
+      { "name": "The Meaning-Bearing-Color Rule","section": "colors",     "body": "Color names a state: online (mint), current nav (violet), action (gold), danger (coral), caution (amber). If a colored element doesn't carry one of these meanings, it's the wrong color." },
+      { "name": "The One Voice Rule",            "section": "typography", "body": "A single Geist family covers the whole UI. A fancy heading is weight plus scale, never a new family." },
+      { "name": "The Mono Data Rule",            "section": "typography", "body": "Every reported value uses Geist Mono with tabular numerics: counts, file sizes, durations, relative timestamps, screen IDs, pairing codes. Mono is what makes the console read as an instrument. Prose and labels stay in sans; data is mono." },
+      { "name": "The Token-Or-Don't Rule",       "section": "typography", "body": "Use the scale utilities (text-display, text-h1, text-h2, text-stat, text-label, text-eyebrow, text-meta) plus font-mono. Stacking text-sm font-medium tracking-tight inline is forbidden; it is how scales drift." },
+      { "name": "The Hairline-Seam Rule",        "section": "elevation",  "body": "A collection is one bordered container (rounded-xl border border-border) wrapping a grid whose cells are separated by 1px gaps over the border color (grid gap-px bg-border, cells bg-surface-1). The result is a single instrument panel of cells, not a scatter of independent cards." },
+      { "name": "The Flat-Collection Rule",      "section": "elevation",  "body": "Lists and grids of objects (screens, playlists, media) never use per-item drop shadows. Items are flat cells that respond to hover with a tonal lift to surface-2. Shadows are a response to floating, not a default." },
+      { "name": "The Earned-Halo Rule",          "section": "elevation",  "body": "The gold halo behind primary buttons is reserved for the single primary action on a screen. Two halos on the same screen mean one of them isn't actually primary." }
     ],
     "dos": [
-      "Do lead with the type-scale utility classes (text-display, text-h1, text-h2, text-stat, text-label, text-eyebrow, text-meta). They bake size, leading, tracking, and weight together.",
-      "Do use semantic color tokens (bg-accent, text-info, bg-danger-soft), never the raw --yugo-* brand colors in components. The raw tokens are migration-only.",
-      "Do carry status with shape, icon, or label alongside color. Color is never the sole carrier of state.",
-      "Do layer elevation tonally first (surface-1 → surface-2 → surface-3) before reaching for a shadow.",
-      "Do use OKLCH for every color. Reduce chroma as lightness approaches the extremes.",
-      "Do size touch targets to ≥44×44 px on mobile surfaces. The on-site flow is thumb-driven, standing in front of a TV.",
-      "Do prefer inline progressive disclosure over modals. Modals are a last resort for irreversible actions.",
-      "Do keep gold rare. One primary action per screen. One focused field at a time.",
-      "Do respect prefers-reduced-motion. Fade transitions only; never parallax or scroll-driven choreography."
+      "Do lead with the type-scale utility classes (text-h1, text-stat, text-label, text-eyebrow, text-meta). They bake size, leading, tracking, and weight together.",
+      "Do put every reported value in font-mono with tabular numerics: counts, sizes, durations, timestamps, IDs, codes.",
+      "Do build collections as a single hairline-seam grid (one bordered container, gap-px bg-border cells), not a scatter of floating cards.",
+      "Do keep surfaces flat at rest; reach for a lighter surface and a hairline border before any shadow.",
+      "Do carry status with shape, icon, or label alongside color (mint dot vs hollow ring, not color alone).",
+      "Do use semantic color tokens (bg-accent, text-info, bg-danger-soft), never the raw --yugo-* brand colors.",
+      "Do keep gold rare: one primary action per screen, one focused field at a time.",
+      "Do size touch targets ≥44px on mobile; the on-site flow is thumb-driven.",
+      "Do use the bottom tab bar for mobile navigation, and details or inline reveals over modals.",
+      "Do respect prefers-reduced-motion; fade transitions only, 150 to 250ms, exponential ease-out, no bounce."
     ],
     "donts": [
       "Don't use generic SaaS dashboard tropes: purple-to-blue gradients, glass cards by default, the hero-metric template, gradient text, identical-card grids, or modal-first flows.",
-      "Don't clone Linear or Vercel surfaces directly. Borrow the discipline (reliable + technical register), not the visual signature.",
-      "Don't introduce consumer-warm cream tones: Notion-light, Stripe-marketing cream, beige backgrounds. Yugo lives in dark, full stop.",
-      "Don't drift into crypto / AI terminal aesthetics: neon-on-black, monospace everywhere, brutalist grids, scanlines. Reliable, not dystopian.",
-      "Don't ape corporate BI tools: circular brand-color icons, gratuitous charts, dense without earning the density.",
+      "Don't give collection items per-item drop shadows or wrap each in a floating card. Flat cells, hairline seams.",
+      "Don't put a photo or image wash behind the UI; it reads dated. Depth comes from tonal layering, not background imagery.",
+      "Don't use a full-height side drawer for mobile navigation; it covers the screen. Use the bottom tab bar.",
+      "Don't clone Linear or Vercel surfaces directly. Borrow the reliable-and-technical register, not the visual signature.",
+      "Don't introduce consumer-warm cream tones: Notion-light, Stripe-marketing cream, beige. Yugo lives in dark.",
+      "Don't drift into crypto / AI terminal aesthetics: neon-on-black, monospace everywhere, brutalist grids, scanlines. Mono is for data, not the whole UI.",
+      "Don't ape corporate BI tools: circular brand-color icons, gratuitous charts, density without earning it.",
       "Don't use #000 or #fff. Every neutral carries the brand chroma.",
-      "Don't put a border-left or border-right greater than 1px as a colored accent on a card, list item, or callout. Side-stripe borders are banned.",
-      "Don't apply background-clip: text with a gradient. Gradient text is banned. Use a single solid color for emphasis.",
-      "Don't glass by default. Backdrop blur is reserved for sticky bars attached to scrolling content.",
-      "Don't put gold on more than one element-cluster per screen. If two things are gold, one of them isn't actually primary.",
+      "Don't put a border-left or border-right greater than 1px as a colored stripe on a cell, list item, or callout.",
+      "Don't apply background-clip: text with a gradient. Use a single solid color for emphasis.",
+      "Don't put gold on more than one element-cluster per screen. Two golds means one isn't actually primary.",
       "Don't use em dashes or double-hyphens in UI copy. Use commas, colons, semicolons, periods, or parentheses.",
-      "Don't stack text-sm font-medium tracking-tight inline. Use a type-scale class.",
-      "Don't animate CSS layout properties. Animate opacity, transform, color, background.",
-      "Don't rely on color alone for online/offline, success/danger, or current navigation."
+      "Don't stack ad-hoc type utilities (text-sm font-medium tracking-tight). Use a scale class.",
+      "Don't call native window.confirm or alert. Use the in-app ConfirmDialog."
     ]
   }
 }

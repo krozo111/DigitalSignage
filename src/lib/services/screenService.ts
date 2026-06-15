@@ -71,7 +71,7 @@ export const getAllScreens = async (): Promise<Screen[]> => {
 /**
  * Updates name or playlist assignment for a screen.
  */
-export const updateScreenDetails = async (id: string, name: string, playlistId: string): Promise<void> => {
+export const updateScreenDetails = async (id: string, name: string, playlistId: string | null): Promise<void> => {
   assertAuth();
 
   const screenRef = doc(db, "screens", id);
@@ -121,19 +121,22 @@ export const purgeStaleScreens = async (): Promise<number> => {
     const name = data.name || "";
     const lastSeen = data.lastSeen;
 
-    // Condition 1: Never given a real name (unclaimed garbage)
+    // Condition 1: Never given a real name (unclaimed)
     const isUnnamed = name === "New TV" || name === "Nueva TV" || name.trim() === "";
 
     // Condition 2: Last seen more than 24h ago
     let isStale = false;
     if (lastSeen) {
-      const lastSeenMs = lastSeen instanceof Timestamp 
-        ? lastSeen.toMillis() 
+      const lastSeenMs = lastSeen instanceof Timestamp
+        ? lastSeen.toMillis()
         : new Date(lastSeen).getTime();
       isStale = (now - lastSeenMs) > TWENTY_FOUR_HOURS;
     }
 
-    if (isUnnamed || isStale) {
+    // Only purge abandoned screens: unclaimed AND not seen in 24h. A freshly
+    // registered "New TV" is still heartbeating (fresh lastSeen) while it shows
+    // its pairing QR, so it is NOT stale and must survive a purge.
+    if (isUnnamed && isStale) {
       await deleteDoc(screenDoc.ref);
       deletedCount++;
     }

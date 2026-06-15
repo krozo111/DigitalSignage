@@ -28,6 +28,20 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Acceso denegado: email no autorizado" }, { status: 403 });
     }
 
+    // The email match pins identity, but Firestore rules authorize by the
+    // `admin: true` custom claim (see firestore.rules / scripts/set-admin-claim.mjs).
+    // Reject here if the claim is missing — otherwise login "succeeds" while every
+    // panel read/write is silently denied by the rules.
+    if (decodedToken.admin !== true) {
+      return NextResponse.json(
+        {
+          error:
+            "La cuenta no tiene permisos de admin. Ejecuta scripts/set-admin-claim.mjs para esta cuenta.",
+        },
+        { status: 403 }
+      );
+    }
+
     // For email/password sign-in, Firebase doesn't auto-verify the email.
     // Since this is a hard-coded single-admin model, identity is already pinned
     // by the email match above — we don't require email_verified.
@@ -46,7 +60,10 @@ export async function POST(request: NextRequest) {
     response.cookies.set(SESSION_COOKIE_NAME, sessionCookie, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      // 'lax' (not 'strict') so the cookie is sent on top-level navigations
+      // into /admin (bookmarks, external links, new tabs). 'strict' withheld
+      // it on cross-site-initiated GETs, which surfaced as random logouts.
+      sameSite: "lax",
       maxAge: SESSION_DURATION_MS / 1000,
       path: "/",
     });
@@ -74,7 +91,7 @@ export async function DELETE(request: NextRequest) {
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "lax",
     maxAge: 0,
     path: "/",
   });

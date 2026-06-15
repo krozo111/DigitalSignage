@@ -15,7 +15,6 @@ import {
 } from "@dnd-kit/sortable";
 import { AlertIcon, EmptyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/Button";
-import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { BuiltItem } from "../types";
 import { SortablePlaylistItem } from "./SortablePlaylistItem";
@@ -61,7 +60,7 @@ export function PlaylistBuilder({
   };
 
   return (
-    <Card padding="lg" className="w-full lg:w-1/2 flex flex-col min-h-[600px]">
+    <div className="w-full lg:w-1/2 flex flex-col min-h-[600px] rounded-xl border border-border bg-surface-1 p-6">
       <Input
         placeholder="Playlist Name (ex: Local Main Screen 1)"
         value={name}
@@ -70,7 +69,7 @@ export function PlaylistBuilder({
       />
 
       <div
-        className={`flex-1 overflow-y-auto space-y-3 pr-2 shadow-inner bg-surface-3 p-3 rounded-lg border mt-4 ${
+        className={`flex-1 overflow-y-auto space-y-3 pr-2 bg-surface-3 p-3 rounded-lg border mt-4 ${
           itemsError ? "border-danger/50" : "border-border"
         }`}
       >
@@ -83,8 +82,8 @@ export function PlaylistBuilder({
             <span className="mb-3">
               {itemsError ? <AlertIcon size={40} /> : <EmptyIcon size={40} />}
             </span>
-            <p>{itemsError || "The playlist is empty."}</p>
-            <p className="text-sm">
+            <p className="text-label">{itemsError || "The playlist is empty."}</p>
+            <p className="text-meta">
               {itemsError ? "" : "Tap an element on the left to add it."}
             </p>
           </div>
@@ -120,8 +119,8 @@ export function PlaylistBuilder({
         onClick={onSave}
         className="mt-6 w-full"
       >
-        {saving ? "Saving..." : editingId ? "Update Playlist" : "Save Playlist"}
+        {saving ? "Saving" : editingId ? "Update Playlist" : "Save Playlist"}
       </Button>
-    </Card>
+    </div>
   );
 }

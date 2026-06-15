@@ -19,7 +19,7 @@ interface UsePlaylistEditorArgs {
 }
 
 export function usePlaylistEditor({ mediaList, onSave, onDone }: UsePlaylistEditorArgs) {
-  const { setDirty } = useUnsavedChanges();
+  const { setDirty, confirmNavigation } = useUnsavedChanges();
 
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
@@ -52,12 +52,13 @@ export function usePlaylistEditor({ mediaList, onSave, onDone }: UsePlaylistEdit
   }, []);
 
   const cancel = useCallback(() => {
-    if (isDirty && !window.confirm("You have unsaved changes. Discard them and leave?")) {
-      return;
-    }
-    reset();
-    onDone();
-  }, [isDirty, reset, onDone]);
+    // Routes through the shared in-app dialog: runs immediately when clean,
+    // otherwise asks to discard before resetting and closing the editor.
+    confirmNavigation(() => {
+      reset();
+      onDone();
+    });
+  }, [confirmNavigation, reset, onDone]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
