@@ -2,6 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Image from "next/image";
 import { CloseIcon, DragHandleIcon } from "@/components/icons";
 import { BuiltItem } from "../types";
 
@@ -51,7 +52,7 @@ export function SortablePlaylistItem({
       </button>
 
       <div
-        className={`h-16 w-16 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center ${
+        className={`relative h-16 w-16 rounded-md overflow-hidden flex-shrink-0 flex items-center justify-center ${
           isBroken ? "bg-danger/20" : "bg-surface-2"
         }`}
       >
@@ -60,7 +61,7 @@ export function SortablePlaylistItem({
         ) : item.type === "vid" ? (
           <video src={item.url} className="h-full w-full object-cover" />
         ) : (
-          <img src={item.url} alt="" className="h-full w-full object-cover" />
+          <Image src={item.url} alt="" fill sizes="64px" className="object-cover" />
         )}
       </div>
 

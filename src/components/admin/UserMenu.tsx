@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { LogoutIcon } from "@/components/icons";
+import { useTheme } from "@/context/ThemeContext";
 
 type UserMenuVariant = "expanded" | "compact";
 
@@ -14,6 +15,7 @@ interface UserMenuProps {
 export function UserMenu({ email, onLogout, variant = "expanded" }: UserMenuProps) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     if (!open) return;
@@ -70,10 +72,21 @@ export function UserMenu({ email, onLogout, variant = "expanded" }: UserMenuProp
             type="button"
             role="menuitem"
             onClick={() => {
+              toggleTheme();
+              setOpen(false);
+            }}
+            className="w-full px-3 py-2.5 mt-1 text-left text-label text-fg-muted hover:bg-surface-3 hover:text-fg rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint focus-visible:ring-inset"
+          >
+            Use {theme === "dark" ? "light" : "dark"} theme
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => {
               setOpen(false);
               onLogout();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-left text-label text-danger hover:bg-danger-soft rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
+            className="w-full flex items-center gap-2 px-3 py-2.5 mt-1 text-left text-label text-danger hover:bg-danger-soft rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint focus-visible:ring-inset"
           >
             <LogoutIcon size={16} /> Sign out
           </button>

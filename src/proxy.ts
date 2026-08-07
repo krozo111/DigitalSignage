@@ -36,13 +36,12 @@ function buildCsp(): string {
   ].join("; ");
 }
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
-  // Security headers
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -62,7 +61,7 @@ export function middleware(request: NextRequest) {
   const isLoginPage = request.nextUrl.pathname === "/admin/login";
 
   if (request.nextUrl.pathname.startsWith("/admin")) {
-    // UX-only redirect — the cryptographic check happens in the admin layout (Server Component).
+    // UX-only redirect — the cryptographic check happens in the admin layout.
     if (!isLoginPage && !hasSession) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
     }

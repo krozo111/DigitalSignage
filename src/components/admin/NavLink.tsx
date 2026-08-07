@@ -33,10 +33,10 @@ export function NavLink({ href, label, icon: Icon, onNavigate }: NavLinkProps) {
       href={href}
       onClick={handleClick}
       aria-current={isActive ? "page" : undefined}
-      className={`relative flex items-center gap-3 rounded-lg px-3 min-h-11 md:min-h-10 text-label transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+      className={`relative flex items-center gap-3 rounded-md px-3 min-h-10 text-label transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint ${
         isActive
-          ? "bg-info-soft text-info ring-1 ring-info/20"
-          : "text-fg-muted hover:bg-fg/[0.04] hover:text-fg"
+          ? "bg-signal-mint/15 text-white ring-1 ring-signal-mint/30"
+          : "text-white/75 hover:bg-white/[0.08] hover:text-white"
       }`}
     >
       <Icon />

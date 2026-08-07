@@ -2,7 +2,7 @@
 
 import { ButtonHTMLAttributes, forwardRef } from "react";
 
-type ButtonVariant = "primary" | "secondary" | "danger" | "ghost";
+type ButtonVariant = "primary" | "secondary" | "danger" | "destructive" | "affirm" | "ghost";
 type ButtonSize = "sm" | "md" | "lg";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -13,19 +13,23 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:
-    "bg-accent hover:bg-accent-strong text-on-accent font-semibold shadow-[0_1px_0_oklch(1_0_0/0.25)_inset,0_8px_20px_-10px_oklch(0.81_0.155_75/0.6)]",
+    "bg-accent hover:bg-accent-strong text-on-accent font-semibold",
   secondary:
-    "bg-surface-2 hover:bg-surface-1 text-fg border border-border-strong font-medium",
+    "bg-surface-1 hover:bg-surface-3 text-fg border border-border font-medium",
   danger:
-    "bg-danger hover:bg-danger/90 text-on-danger font-semibold",
+    "border border-danger text-danger hover:bg-danger/[0.06] font-semibold",
+  destructive:
+    "border border-danger text-danger hover:bg-danger/[0.06] font-semibold",
+  affirm:
+    "bg-signal-mint hover:bg-signal-mint/90 text-midnight-violet font-semibold",
   ghost:
-    "bg-transparent hover:bg-fg/[0.05] text-fg-muted hover:text-fg font-medium",
+    "bg-transparent hover:bg-surface-3 text-fg-muted hover:text-fg font-medium",
 };
 
 const sizeStyles: Record<ButtonSize, string> = {
-  sm: "py-2 px-3 text-label rounded-lg",
-  md: "py-2.5 px-4 text-label rounded-lg",
-  lg: "py-3.5 px-6 text-base rounded-xl",
+  sm: "h-7 px-3 text-meta rounded-md",
+  md: "h-9 px-3.5 text-label rounded-md",
+  lg: "h-10 px-4 text-label rounded-md",
 };
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -45,7 +49,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         disabled={disabled || loading}
-        className={`inline-flex items-center justify-center gap-2 transition-colors duration-200 cursor-pointer border-none focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
+        className={`inline-flex items-center justify-center gap-2 transition-colors duration-[160ms] cursor-pointer border border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-50 disabled:cursor-not-allowed ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
         {...props}
       >
         {loading && (

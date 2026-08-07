@@ -40,6 +40,8 @@ if (typeof window !== "undefined") {
       // Multiple init or unsupported environment — safe to ignore
       console.warn("App Check init skipped:", err);
     }
+  } else if (process.env.NODE_ENV === "production") {
+    console.error("Firebase App Check is not configured in this production build.");
   }
 }
 

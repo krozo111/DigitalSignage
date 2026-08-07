@@ -2,24 +2,30 @@
   "name": "mi-signage",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=24.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "verify": "npm run typecheck && npm run lint && next build --webpack",
+    "audit": "npm audit --omit=dev",
+    "smoke": "node scripts/smoke-test.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "firebase": "^12.11.0",
-    "firebase-admin": "^13.10.0",
-    "js-cookie": "^3.0.5",
-    "lucide-react": "^1.16.0",
-    "next": "^16.2.6",
+    "firebase": "^12.17.1",
+    "firebase-admin": "^14.2.0",
+    "lucide-react": "^1.29.0",
+    "next": "^16.3.0",
     "qrcode": "^1.5.4",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
     "sonner": "^2.0.7"
   },
   "overrides": {
@@ -27,19 +33,17 @@
     "gaxios": "^7.1.4",
     "teeny-request": "^10.1.2",
     "retry-request": "^8.0.2",
-    "postcss": "^8.5.10"
+    "postcss": "^8.5.26"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/js-cookie": "^3.0.6",
-    "@types/node": "^20",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^24.0.0",
     "@types/qrcode": "^1.5.6",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "babel-plugin-react-compiler": "1.0.0",
-    "eslint": "^9",
-    "eslint-config-next": "16.2.1",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "16.3.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
   }
 }

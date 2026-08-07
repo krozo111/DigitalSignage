@@ -1,244 +1,240 @@
 @import "tailwindcss";
 
-/* ---------------------------------------------------------------------------
-   Yugo color system
-   ---------------------------------------------------------------------------
-   Built on OKLCH around the brand indigo hue (~290°). Every neutral carries
-   a tiny chroma so nothing ever reads as flat #000/#fff. Three accent hues
-   earn their place by owning a semantic role:
-
-     gold  (~75°)   → primary action, CTAs, focus
-     mint  (~165°)  → success, online, positive deltas
-     violet(~280°)  → info, current navigation, links
-     coral (~25°)   → danger, destructive, errors
-
-   Components consume semantic tokens (surface, fg, accent, info, danger…).
-   Raw brand colors (--yugo-*) remain only for migration paths. Avoid them
-   in new code.
---------------------------------------------------------------------------- */
-
+/*
+ * Yugo Signage visual foundation.
+ *
+ * The design system is intentionally token-first: components can keep their
+ * existing semantic utility names while the light/dark theme changes in one
+ * place. Light is the default; `html.dark` is toggled by ThemeProvider.
+ */
 :root {
-  /* Foundation — never pure black/white. Both carry the brand hue. */
-  --background: oklch(0.15 0.022 290);
-  --foreground: oklch(0.985 0.004 80);
+  color-scheme: light;
 
-  /* Raw brand identity (do not use directly in components) */
-  --yugo-primary:   #211B30;
-  --yugo-accent:    #EFB851;
-  --yugo-secondary: #50CBAD;
-  --yugo-vibrant:   #6C49EE;
-  --yugo-soft:      #FFB8AA;
+  --nav-surface: #241b3e;
+  --midnight-violet: #2e1f47;
+  --signal-mint: #2ecfb3;
+  --mint-ink: #0e7a66;
+  --action-coral: #c93a26;
+  --coral-bright: #f04e37;
+  --cleared-green: #10b981;
+  --pending-amber: #f59e0b;
+  --critical-red: #dc2626;
+  --info-cobalt: #2e4bf0;
+
+  --surface-app: #f4f4f8;
+  --surface-card: #fdfcfe;
+  --surface-sunken: #eeedf3;
+  --surface-hover: #f0eff5;
+  --surface-border: #e5e3ec;
+  --surface-border-strong: #cfcbda;
+  --ink: #1a1726;
+  --ink-muted: #5a5468;
+  --ink-soft: #8c8699;
+
+  /* Existing semantic aliases stay available while modules migrate. */
+  --background: var(--surface-app);
+  --foreground: var(--ink);
+  --surface-1: var(--surface-card);
+  --surface-2: var(--surface-sunken);
+  --surface-3: var(--surface-hover);
+  --surface-strong: var(--surface-card);
+  --fg: var(--ink);
+  --fg-muted: var(--ink-muted);
+  --fg-subtle: var(--ink-soft);
+  --fg-disabled: color-mix(in srgb, var(--ink-soft) 55%, transparent);
+  --border: var(--surface-border);
+  --border-strong: var(--surface-border-strong);
+  --accent: var(--action-coral);
+  --accent-strong: var(--coral-bright);
+  --accent-soft: color-mix(in srgb, var(--action-coral) 10%, transparent);
+  --success: var(--cleared-green);
+  --success-soft: color-mix(in srgb, var(--cleared-green) 10%, transparent);
+  --warning: var(--pending-amber);
+  --warning-soft: color-mix(in srgb, var(--pending-amber) 12%, transparent);
+  --danger: var(--critical-red);
+  --danger-soft: color-mix(in srgb, var(--critical-red) 10%, transparent);
+  --info: var(--info-cobalt);
+  --info-strong: #2038c7;
+  --info-soft: color-mix(in srgb, var(--info-cobalt) 10%, transparent);
+  --on-accent: #fdfcfe;
+  --on-danger: #fdfcfe;
+}
+
+html.dark {
+  color-scheme: dark;
+
+  --surface-app: #141021;
+  --surface-card: #1c1730;
+  --surface-sunken: #17122a;
+  --surface-hover: #251e3c;
+  --surface-border: #2e2745;
+  --surface-border-strong: #443a63;
+  --ink: #f5f4f8;
+  --ink-muted: #b9b3c6;
+  --ink-soft: #8a83a0;
+  --info-strong: #8391ff;
+  --on-accent: #fff8f5;
+  --on-danger: #fff8f5;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-nav-surface: var(--nav-surface);
+  --color-midnight-violet: var(--midnight-violet);
+  --color-signal-mint: var(--signal-mint);
+  --color-mint-ink: var(--mint-ink);
+  --color-action-coral: var(--action-coral);
+  --color-coral-bright: var(--coral-bright);
+  --color-cleared-green: var(--cleared-green);
+  --color-pending-amber: var(--pending-amber);
+  --color-critical-red: var(--critical-red);
+  --color-info-cobalt: var(--info-cobalt);
+  --color-surface-app: var(--surface-app);
+  --color-surface-card: var(--surface-card);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-border: var(--surface-border);
+  --color-surface-border-strong: var(--surface-border-strong);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-soft: var(--ink-soft);
 
-  /* Raw brand (kept for migration; prefer semantic tokens) */
-  --color-yugo-primary:   var(--yugo-primary);
-  --color-yugo-accent:    var(--yugo-accent);
-  --color-yugo-secondary: var(--yugo-secondary);
-  --color-yugo-vibrant:   var(--yugo-vibrant);
-  --color-yugo-soft:      var(--yugo-soft);
-
-  /* -------- Semantic surfaces ------------------------------------------
-     Layered tints over --background. Mostly solid (less glass), each step
-     lifts ~2% in lightness while keeping the brand chroma.                */
-  --color-surface-1:      oklch(0.20 0.028 290);
-  --color-surface-2:      oklch(0.24 0.034 290);
-  --color-surface-3:      oklch(0.18 0.024 290);
-  --color-surface-strong: oklch(0.22 0.032 290 / 0.92);
-
-  /* Translucent variants for sticky bars / overlays that need to feel
-     attached to whatever scrolls under them. */
-  --color-surface-1-glass: oklch(0.20 0.028 290 / 0.72);
-  --color-surface-2-glass: oklch(0.24 0.034 290 / 0.78);
-
-  /* -------- Foreground levels ----------------------------------------- */
-  --color-fg:          oklch(0.985 0.004 80);
-  --color-fg-muted:    oklch(0.985 0.004 80 / 0.66);
-  --color-fg-subtle:   oklch(0.985 0.004 80 / 0.46);
-  --color-fg-disabled: oklch(0.985 0.004 80 / 0.24);
-  --color-on-accent:   oklch(0.18 0.025 290); /* deep indigo on gold/mint */
-  --color-on-info:     oklch(0.985 0.004 80); /* white on violet */
-  --color-on-danger:   oklch(0.20 0.04 25);   /* deep warm on coral */
-
-  /* -------- Borders ---------------------------------------------------- */
-  --color-border:        oklch(0.985 0.004 80 / 0.07);
-  --color-border-strong: oklch(0.985 0.004 80 / 0.14);
-  --color-border-accent: oklch(0.81 0.155 75);
-
-  /* -------- Intent / status -------------------------------------------
-     Each pair: base color + soft (≈10% alpha wash for tinted backgrounds) */
-
-  /* Accent — primary action (gold) */
-  --color-accent:        oklch(0.81 0.155 75);
-  --color-accent-soft:   oklch(0.81 0.155 75 / 0.12);
-  --color-accent-strong: oklch(0.74 0.165 70);
-
-  /* Success — positive state (mint) */
-  --color-success:      oklch(0.78 0.12 165);
-  --color-success-soft: oklch(0.78 0.12 165 / 0.13);
-
-  /* Warning — caution (amber, hue-anchored near gold) */
-  --color-warning:      oklch(0.80 0.15 70);
-  --color-warning-soft: oklch(0.80 0.15 70 / 0.13);
-
-  /* Danger — destructive / error (warm coral, brand-aligned) */
-  --color-danger:       oklch(0.74 0.135 25);
-  --color-danger-soft:  oklch(0.74 0.135 25 / 0.14);
-
-  /* Info — informational / current navigation (violet) */
-  --color-info:        oklch(0.62 0.21 280);
-  --color-info-soft:   oklch(0.62 0.21 280 / 0.16);
-  --color-info-strong: oklch(0.55 0.23 280);
-
-  /* -------- Typography -------------------------------------------------
-     Geist Sans carries the whole UI. Geist Mono is reserved for pairing
-     codes, IDs, and anywhere literal character width matters. Sizes are
-     fixed-rem (1.125 step ratio) — no fluid clamps in product UI.        */
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-
-  /* Weight roles. Bold is reserved for the wordmark and hero metrics;
-     the rest of the UI lives between 500 (label) and 600 (heading). */
-  --font-weight-regular:  400;
-  --font-weight-medium:   500;
-  --font-weight-semibold: 600;
-  --font-weight-bold:     700;
-
-  /* -------- Spacing rhythm -------------------------------------------
-     Tight (xs/sm) for intra-group; generous (lg/xl) between groups.
-     A consistent header height keeps the shell crowns aligned across
-     mobile and desktop entry points.                                    */
-  --shell-header-h-mobile:  3.5rem;  /* 56px */
-  --shell-header-h-desktop: 4rem;    /* 64px */
-  --shell-row-h-touch:      2.75rem; /* 44px — mobile hit target */
-  --shell-row-h-desktop:    2.5rem;  /* 40px — desktop nav row */
-
-  /* -------- Motion ----------------------------------------------------- */
-  --animate-fade-in:  fadeIn  200ms cubic-bezier(0.22, 1, 0.36, 1);
-  --animate-fade-out: fadeOut 200ms cubic-bezier(0.4, 0, 1, 1);
-}
-
-@keyframes fadeOut {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+  /* Legacy aliases used by the current feature modules. */
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-surface-strong: var(--surface-strong);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-fg-disabled: var(--fg-disabled);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-accent: var(--accent);
+  --color-accent-strong: var(--accent-strong);
+  --color-accent-soft: var(--accent-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-strong: var(--info-strong);
+  --color-info-soft: var(--info-soft);
+  --color-on-accent: var(--on-accent);
+  --color-on-danger: var(--on-danger);
+  --font-sans: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --animate-fade-in: fadeIn 160ms cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-fade-out: fadeOut 160ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-4px); }
 }
 
 @keyframes pulseGlow {
-  0%, 100% { box-shadow: 0 0 24px oklch(0.81 0.155 75 / 0.25); }
-  50%      { box-shadow: 0 0 48px oklch(0.81 0.155 75 / 0.55); }
+  from { opacity: 0.65; }
+  to { opacity: 1; }
 }
 
-/* ---------------------------------------------------------------------------
-   App body — warm indigo foundation with an off-axis violet wash.
-   The wash adds depth without becoming "purple gradient SaaS background"
-   because it sits at <30% chroma and decays to background within 70vh.
---------------------------------------------------------------------------- */
+* {
+  border-color: var(--border);
+}
+
+html {
+  background: var(--background);
+}
+
 body {
-  background:
-    radial-gradient(
-      80vw 60vh at 8% -10%,
-      oklch(0.30 0.10 285 / 0.55) 0%,
-      transparent 70%
-    ),
-    radial-gradient(
-      70vw 70vh at 110% 110%,
-      oklch(0.28 0.07 25 / 0.22) 0%,
-      transparent 65%
-    ),
-    var(--background);
-  background-attachment: fixed;
+  background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  line-height: 1.5;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+a,
+select,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--signal-mint) 28%, transparent);
+  color: var(--ink);
 }
 
 .scrollbar-none {
-  -ms-overflow-style: none;
   scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 
-/* Selection — matches accent gold so highlighting feels on-brand. */
-::selection {
-  background: oklch(0.81 0.155 75 / 0.35);
-  color: var(--foreground);
-}
-
-/* ---------------------------------------------------------------------------
-   Semantic type scale
-   ---------------------------------------------------------------------------
-   Six roles. Each bakes size + leading + tracking + weight so callers never
-   re-tune those four parameters independently (which is how hierarchy drifts).
-
-     .text-display  brand wordmark on standalone pages (login, signup, splash)
-     .text-h1       page titles (PageHeader)
-     .text-h2       section headings, sidebar wordmark in shell
-     .text-stat     hero metric (dashboard network status) tabular-nums baked in
-     .text-label    UI labels, nav rows, buttons
-     .text-eyebrow  uppercase tags above headings, stat labels
-     .text-meta     captions, metadata, helper text under inputs
-
-   Use these instead of stacking text-* + font-* + tracking-* in markup.
---------------------------------------------------------------------------- */
 @layer utilities {
   .text-display {
-    font-size: 2rem;          /* 32px */
-    line-height: 1.1;
-    letter-spacing: -0.022em;
-    font-weight: 600;
-  }
-  .text-h1 {
-    font-size: 1.5rem;        /* 24px */
-    line-height: 1.2;
-    letter-spacing: -0.018em;
-    font-weight: 600;
-  }
-  .text-h2 {
-    font-size: 1.125rem;      /* 18px */
-    line-height: 1.3;
-    letter-spacing: -0.012em;
-    font-weight: 600;
-  }
-  .text-stat {
-    font-size: 2.25rem;       /* 36px */
-    line-height: 1;
-    letter-spacing: -0.025em;
+    font-size: 28px;
+    line-height: 1.15;
     font-weight: 700;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-  }
-  .text-label {
-    font-size: 0.875rem;      /* 14px */
-    line-height: 1.35;
-    letter-spacing: -0.002em;
-    font-weight: 500;
-  }
-  .text-eyebrow {
-    font-size: 0.6875rem;     /* 11px */
-    line-height: 1.2;
-    letter-spacing: 0.075em;
-    font-weight: 600;
-    text-transform: uppercase;
-  }
-  .text-meta {
-    font-size: 0.75rem;       /* 12px */
-    line-height: 1.45;
-    letter-spacing: 0;
+    letter-spacing: -0.025em;
   }
 
-  /* Tabular numerics for any data column (counts, sizes, durations, IDs)
-     so digits don't shift width as values change. */
+  .text-h1 {
+    font-size: 28px;
+    line-height: 1.15;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
+
+  .text-h2 {
+    font-size: 20px;
+    line-height: 1.25;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  .text-stat {
+    font-size: 24px;
+    line-height: 1;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .text-label {
+    font-size: 13.5px;
+    line-height: 1.4;
+    font-weight: 600;
+  }
+
+  .text-eyebrow {
+    font-size: 11px;
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  .text-meta {
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 500;
+  }
+
   .tnum {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum" 1;
   }
 }

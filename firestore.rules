@@ -2,11 +2,11 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // App Check enforcement helper.
-    // Transitional state: returns true while NEXT_PUBLIC_APP_CHECK_SITE_KEY is
-    // being rolled out in the client. Once App Check is wired up end-to-end,
-    // flip the body to `return request.app != null` to enforce.
-    function hasAppCheck() {
+    // App Check is enforced by Firebase Console at the product boundary. The
+    // Firestore rules Request object does not expose an App Check claim, so it
+    // cannot be validated here. Keep this helper as the explicit public-player
+    // boundary and verify enforcement operationally before deployment.
+    function allowPublicPlayerOperation() {
       return true;
     }
 
@@ -28,12 +28,12 @@ service cloud.firestore {
     //  - update / delete by admin: anything goes
     // ============================================================
     match /screens/{screenId} {
-      allow get: if hasAppCheck();
+      allow get: if allowPublicPlayerOperation();
       allow list: if isAdmin();
 
       allow delete: if isAdmin();
 
-      allow create: if hasAppCheck()
+      allow create: if allowPublicPlayerOperation()
         && !isAdmin()
         && request.resource.data.name == "New TV"
         && request.resource.data.status == "online"
@@ -53,7 +53,7 @@ service cloud.firestore {
       // Both paths require App Check.
       allow update: if isAdmin()
         || (
-          hasAppCheck()
+          allowPublicPlayerOperation()
           && !isAdmin()
           && (
             // Heartbeat-only update
@@ -81,7 +81,7 @@ service cloud.firestore {
     // PLAYLISTS — get by ID requires App Check, list/write admin only
     // ============================================================
     match /playlists/{playlistId} {
-      allow get: if hasAppCheck();
+      allow get: if allowPublicPlayerOperation();
       allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }
@@ -90,7 +90,7 @@ service cloud.firestore {
     // MEDIA — get by ID requires App Check, list/write admin only
     // ============================================================
     match /media/{mediaId} {
-      allow get: if hasAppCheck();
+      allow get: if allowPublicPlayerOperation();
       allow list: if isAdmin();
       allow create, update, delete: if isAdmin();
     }

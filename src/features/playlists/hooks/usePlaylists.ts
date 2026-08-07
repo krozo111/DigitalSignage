@@ -22,14 +22,17 @@ export function usePlaylists() {
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchAll = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [media, lists] = await Promise.all([getAllMedia(), getAllPlaylists()]);
       setMediaList(media);
       setPlaylists(lists);
     } catch (err) {
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -68,5 +71,5 @@ export function usePlaylists() {
     [fetchAll]
   );
 
-  return { mediaList, playlists, loading, save, remove };
+  return { mediaList, playlists, loading, error, save, remove, refresh: fetchAll };
 }

@@ -22,12 +22,15 @@ export function PairingScreen({ code, qrDataUrl }: PairingScreenProps) {
           {code}
         </div>
 
-        <div className="flex items-center justify-center rounded-xl bg-white p-2 w-32 h-32 md:w-40 md:h-40">
+        <div className="relative flex h-32 w-32 items-center justify-center rounded-xl bg-white p-2 md:h-40 md:w-40">
           {qrDataUrl ? (
-            <img
+            <Image
               src={qrDataUrl}
               alt={`QR code for pairing code ${code}`}
-              className="w-full h-full"
+              fill
+              unoptimized
+              sizes="160px"
+              className="object-contain p-2"
             />
           ) : (
             <div className="w-full h-full bg-fg-disabled animate-pulse rounded" />
@@ -41,3 +44,4 @@ export function PairingScreen({ code, qrDataUrl }: PairingScreenProps) {
     </div>
   );
 }
+import Image from "next/image";

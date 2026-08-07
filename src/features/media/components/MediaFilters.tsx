@@ -1,6 +1,9 @@
 import { Input } from "@/components/ui/Input";
+import { ModuleToolbar } from "@/components/ui/ModuleToolbar";
+import { ViewTabs } from "@/components/ui/ViewTabs";
 
 export type MediaTypeFilter = "all" | "img" | "vid";
+export type MediaViewMode = "grid" | "list";
 
 const FILTERS: { value: MediaTypeFilter; label: string }[] = [
   { value: "all", label: "All" },
@@ -13,6 +16,8 @@ interface MediaFiltersProps {
   onSearchChange: (q: string) => void;
   typeFilter: MediaTypeFilter;
   onTypeChange: (t: MediaTypeFilter) => void;
+  viewMode: MediaViewMode;
+  onViewModeChange: (mode: MediaViewMode) => void;
 }
 
 export function MediaFilters({
@@ -20,33 +25,22 @@ export function MediaFilters({
   onSearchChange,
   typeFilter,
   onTypeChange,
+  viewMode,
+  onViewModeChange,
 }: MediaFiltersProps) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
+    <ModuleToolbar>
       <Input
         placeholder="Search by name..."
         value={searchQuery}
         onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full sm:w-64"
+        className="w-full sm:w-72"
         aria-label="Search media files"
       />
-      <div className="flex gap-1 bg-surface-1 rounded-lg p-1 border border-border">
-        {FILTERS.map(({ value, label }) => (
-          <button
-            key={value}
-            onClick={() => onTypeChange(value)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              typeFilter === value
-                ? "bg-accent text-on-accent"
-                : "text-fg-subtle hover:text-fg"
-            }`}
-            aria-label={`Filter ${label.toLowerCase()}`}
-            aria-pressed={typeFilter === value}
-          >
-            {label}
-          </button>
-        ))}
+      <ViewTabs tabs={FILTERS} value={typeFilter} onChange={onTypeChange} label="Media type" />
+      <div className="sm:ml-auto">
+        <ViewTabs tabs={[{ value: "grid" as const, label: "Grid" }, { value: "list" as const, label: "List" }]} value={viewMode} onChange={onViewModeChange} label="Media view" />
       </div>
-    </div>
+    </ModuleToolbar>
   );
 }

@@ -17,10 +17,12 @@ export function useScreens() {
   const [screens, setScreens] = useState<Screen[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
 
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const [screensData, playlistsData] = await Promise.all([
         getAllScreens(),
         getAllPlaylists(),
@@ -28,6 +30,7 @@ export function useScreens() {
       setScreens(screensData);
       setPlaylists(playlistsData);
     } catch (err) {
+      setError(err);
       console.error(err);
     } finally {
       setLoading(false);
@@ -84,5 +87,5 @@ export function useScreens() {
     }
   }, [fetchData]);
 
-  return { screens, playlists, loading, claim, updatePlaylist, remove, purge };
+  return { screens, playlists, loading, error, claim, updatePlaylist, remove, purge, refresh: fetchData };
 }

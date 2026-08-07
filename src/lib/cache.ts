@@ -63,7 +63,11 @@ export function useCachedQuery<T>(
         inflight.set(key, p);
       }
       p.then(
-        () => alive && setLoading(false),
+        () => {
+          if (!alive) return;
+          setError(null);
+          setLoading(false);
+        },
         (err) => {
           if (!alive) return;
           setError(err);

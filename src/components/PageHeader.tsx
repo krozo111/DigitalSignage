@@ -12,7 +12,7 @@ export function PageHeader({ title, description, actions }: PageHeaderProps) {
       <div className="min-w-0">
         <h1 className="text-h1 text-fg">{title}</h1>
         {description && (
-          <p className="text-fg-muted text-label mt-1.5 max-w-[65ch]">{description}</p>
+          <p className="text-fg-muted text-meta mt-1.5 max-w-[65ch]">{description}</p>
         )}
       </div>
       {actions && <div className="flex items-center gap-2 flex-shrink-0">{actions}</div>}

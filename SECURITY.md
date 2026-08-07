@@ -41,25 +41,26 @@ firebase deploy --only firestore:rules,storage
 
 Run step 1 once per admin account. New admins must repeat it.
 
-### 2. Enforce App Check (`hasAppCheck()`)
+### 2. Enforce App Check in Firebase Console
 
-`firestore.rules` currently has `hasAppCheck() { return true; }`, so the public
-player paths (screen read/create/heartbeat, playlist/media read) are **not**
-abuse-protected. Flipping it without App Check actually enforced will break
-every player. To enable it safely:
+The public player paths are intended to be protected by App Check. Firestore
+Security Rules do not expose an App Check claim as a rule variable, so the
+enforcement boundary is the Firebase product configuration, not a rule helper.
+To enable it safely:
 
 1. Register the web app under Firebase Console → App Check → reCAPTCHA v3 and
    confirm `NEXT_PUBLIC_APP_CHECK_SITE_KEY` is set in all environments.
 2. Turn on **enforcement** for Firestore **and** Storage in the console.
 3. Verify a real player obtains an App Check token and still works.
-4. Change `hasAppCheck()` to `return request.app != null` and redeploy rules.
+4. Deploy the rules after the admin claim is present and keep this operational
+   check in the release checklist.
 
 Until this is done, anonymous clients can spam-create `screens` documents
 (billing/DoS) and read any screen/playlist/media doc by ID.
 
 ### 3. CSP: remove `script-src 'unsafe-inline'`
 
-`src/middleware.ts` ships `'unsafe-inline'` on `script-src`, which weakens XSS
+`src/proxy.ts` ships `'unsafe-inline'` on `script-src`, which weakens XSS
 mitigation. Moving to a nonce-based CSP is the fix, but it risks breaking
 Next.js hydration and must be done and tested deliberately — not as a one-liner.
 
@@ -84,3 +85,4 @@ Next.js hydration and must be done and tested deliberately — not as a one-line
 - [ ] Admin claim granted (step 1) and admin re-authenticated.
 - [ ] `npm audit` clean.
 - [ ] `npx tsc --noEmit` and `npx eslint` clean (0 errors).
+- [ ] `npm run verify` passes on the same Node 24 runtime used by deployment.

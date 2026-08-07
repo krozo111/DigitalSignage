@@ -60,7 +60,7 @@ export function PlaylistBuilder({
   };
 
   return (
-    <div className="w-full lg:w-1/2 flex flex-col min-h-[600px] rounded-xl border border-border bg-surface-1 p-6">
+    <section className="flex min-h-[600px] w-full flex-col rounded-lg border border-surface-border bg-surface-card p-4 lg:w-1/2">
       <Input
         placeholder="Playlist Name (ex: Local Main Screen 1)"
         value={name}
@@ -69,8 +69,8 @@ export function PlaylistBuilder({
       />
 
       <div
-        className={`flex-1 overflow-y-auto space-y-3 pr-2 bg-surface-3 p-3 rounded-lg border mt-4 ${
-          itemsError ? "border-danger/50" : "border-border"
+        className={`mt-4 flex-1 space-y-3 overflow-y-auto rounded-md border bg-surface-sunken p-3 pr-2 ${
+          itemsError ? "border-danger" : "border-surface-border"
         }`}
       >
         {items.length === 0 ? (
@@ -82,8 +82,8 @@ export function PlaylistBuilder({
             <span className="mb-3">
               {itemsError ? <AlertIcon size={40} /> : <EmptyIcon size={40} />}
             </span>
-            <p className="text-label">{itemsError || "The playlist is empty."}</p>
-            <p className="text-meta">
+            <p className="text-label text-ink-muted">{itemsError || "The playlist is empty."}</p>
+            <p className="text-meta text-ink-soft">
               {itemsError ? "" : "Tap an element on the left to add it."}
             </p>
           </div>
@@ -121,6 +121,6 @@ export function PlaylistBuilder({
       >
         {saving ? "Saving" : editingId ? "Update Playlist" : "Save Playlist"}
       </Button>
-    </div>
+    </section>
   );
 }

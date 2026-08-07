@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yugo Signage
 
-## Getting Started
+Yugo Signage is a self-hosted digital signage admin for five Smart TVs. It manages media, playlists, screen pairing, and playback with Firebase and a Next.js App Router frontend.
 
-First, run the development server:
+The product and visual decisions live in:
+
+- [`PRODUCT.md`](./PRODUCT.md): users, scope, voice, and product principles.
+- [`DESIGN.md`](./DESIGN.md): tokens, layout, component states, responsive rules, and accessibility requirements.
+- [`PROJECT_CONTEXT.md`](./PROJECT_CONTEXT.md): architecture, data model, pairing, and playback constraints.
+
+## Development
+
+Use Node 24 LTS. Install dependencies and start the development server:
 
 ```bash
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open `http://localhost:3000`. The admin is at `/admin`; the player runs at `/` and `/player` redirects there for compatibility.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Verification
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run typecheck
+npm run build
+npm run verify
+npm run audit
+# With the dev or production server running:
+npm run smoke
+```
 
-## Learn More
+Firebase client values belong in `.env.local`. Server-only Firebase Admin credentials and `ADMIN_EMAIL` must never be exposed to the browser or committed. See `.env.example` for the required variables.
 
-To learn more about Next.js, take a look at the following resources:
+## Deployment
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Netlify uses `npm run build` and the official Next.js plugin. The deployment runtime is pinned to Node 24 in `netlify.toml` and should match local development.

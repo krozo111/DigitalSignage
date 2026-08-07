@@ -6,16 +6,16 @@ import { getAllPlaylists, Playlist } from "@/lib/services/playlistService";
 import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { StatusDot } from "@/components/ui/StatusDot";
+import { ErrorState } from "@/components/ui/ErrorState";
 import {
   ScreenIcon,
   PlaylistIcon,
   MediaIcon,
   RocketIcon,
-  AlertIcon,
   ChevronRightIcon,
 } from "@/components/icons";
 import { PageHeader } from "@/components/PageHeader";
+import { StatStrip } from "@/components/ui/StatStrip";
 import { useCachedQuery, CacheKeys } from "@/lib/cache";
 import { isScreenOnline, relativeTime } from "@/lib/screenStatus";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
@@ -23,15 +23,15 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 export default function AdminDashboardHome() {
   useDocumentTitle("Dashboard — Yugo Signage");
 
-  const { data: screens = [], loading: screensLoading } = useCachedQuery<Screen[]>(
+  const { data: screens = [], loading: screensLoading, error: screensError, refresh: refreshScreens } = useCachedQuery<Screen[]>(
     CacheKeys.screens,
     getAllScreens,
   );
-  const { data: playlists = [], loading: playlistsLoading } = useCachedQuery<Playlist[]>(
+  const { data: playlists = [], loading: playlistsLoading, error: playlistsError, refresh: refreshPlaylists } = useCachedQuery<Playlist[]>(
     CacheKeys.playlists,
     getAllPlaylists,
   );
-  const { data: mediaItems = [], loading: mediaLoading } = useCachedQuery<MediaItem[]>(
+  const { data: mediaItems = [], loading: mediaLoading, error: mediaError, refresh: refreshMedia } = useCachedQuery<MediaItem[]>(
     CacheKeys.media,
     getAllMedia,
   );
@@ -54,6 +54,11 @@ export default function AdminDashboardHome() {
     return <LoadingSkeleton variant="grid" count={3} />;
   }
 
+  const firstError = screensError ?? playlistsError ?? mediaError;
+  if (firstError) {
+    return <ErrorState onRetry={() => { refreshScreens(); refreshPlaylists(); refreshMedia(); }} />;
+  }
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
@@ -69,27 +74,14 @@ export default function AdminDashboardHome() {
         }
       />
 
-      {/* Instrument readout: the aggregate answer in one mono line. */}
-      {!networkIsEmpty && (
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-meta tnum">
-          <span className="flex items-center gap-2 text-success">
-            <StatusDot online /> {onlineCount} online
-          </span>
-          <span className="flex items-center gap-2 text-fg-muted">
-            <StatusDot online={false} /> {offlineCount} offline
-          </span>
-          {missingPlaylistCount > 0 && (
-            <span className="flex items-center gap-2 text-warning">
-              <AlertIcon size={13} aria-hidden="true" /> {missingPlaylistCount} no playlist
-            </span>
-          )}
-          {pending.length > 0 && (
-            <span className="flex items-center gap-2 text-info">
-              <ScreenIcon size={13} aria-hidden="true" /> {pending.length} pairing
-            </span>
-          )}
-        </div>
-      )}
+      <StatStrip
+        items={[
+          { label: "Online", value: onlineCount, detail: `${linked.length} linked screens`, tone: "success" },
+          { label: "Offline", value: offlineCount, detail: missingPlaylistCount ? `${missingPlaylistCount} without playlist` : "All screens assigned", tone: offlineCount ? "warning" : "default" },
+          { label: "Pairing", value: pending.length, detail: pending.length ? "Awaiting a claim" : "No pending screens", tone: pending.length ? "info" : "default" },
+          { label: "Media library", value: mediaItems.length, detail: `${totalSizeMB} MB stored` },
+        ]}
+      />
 
       {/* The screen wall: a hairline grid of live tiles, one per claimed screen. */}
       {networkIsEmpty ? (
@@ -107,76 +99,54 @@ export default function AdminDashboardHome() {
           }
         />
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border bg-border">
-          <div className="grid grid-cols-1 gap-px bg-border sm:grid-cols-2 xl:grid-cols-3">
-            {linked.map((screen) => {
+        <section aria-labelledby="screen-status-heading" className="overflow-hidden rounded-lg border border-surface-border bg-surface-card">
+          <div className="flex items-center justify-between border-b border-surface-border bg-surface-sunken px-4 py-3">
+            <h2 id="screen-status-heading" className="text-label font-semibold text-ink">Screen status</h2>
+            <Link href="/admin/screens" className="text-meta font-semibold text-info-cobalt hover:underline">View all</Link>
+          </div>
+          <div className="hidden grid-cols-[minmax(0,1.5fr)_minmax(7rem,0.7fr)_minmax(0,1fr)_7rem] gap-4 border-b border-surface-border bg-surface-sunken px-4 py-2 text-eyebrow text-ink-soft md:grid">
+            <span>Screen</span><span>Status</span><span>Playlist</span><span className="text-right">Last seen</span>
+          </div>
+          <div className="divide-y divide-surface-border">
+            {[...linked, ...pending].map((screen) => {
               const online = isScreenOnline(screen);
               const list = playlistName(screen.playlistId);
+              const isPending = Boolean(screen.pairingCode);
               return (
-                <div
-                  key={screen.id}
-                  className="flex min-h-[7.5rem] flex-col gap-3 bg-surface-1 p-5 transition-colors hover:bg-surface-2"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="flex min-w-0 items-center gap-2">
-                      <StatusDot online={online} />
-                      <span className="truncate text-label font-semibold text-fg">{screen.name}</span>
-                      <span className="sr-only">{online ? "online" : "offline"}</span>
-                    </span>
-                    <span className="shrink-0 font-mono text-meta text-fg-subtle tnum">
-                      {relativeTime(screen.lastSeen)}
-                    </span>
+                <div key={screen.id} className="grid gap-2 px-4 py-3 transition-colors hover:bg-surface-hover md:grid-cols-[minmax(0,1.5fr)_minmax(7rem,0.7fr)_minmax(0,1fr)_7rem] md:items-center md:gap-4">
+                  <div className="min-w-0">
+                    <p className="truncate text-label text-ink">{screen.name}</p>
+                    <p className="mt-0.5 text-meta text-ink-muted md:hidden">{isPending ? `Pairing code ${screen.pairingCode}` : list ?? "No playlist assigned"}</p>
                   </div>
-                  <div className="mt-auto">
-                    {list ? (
-                      <span className="flex items-center gap-1.5 truncate text-meta text-fg-muted">
-                        <PlaylistIcon size={13} className="shrink-0 text-fg-subtle" aria-hidden="true" />
-                        {list}
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1.5 text-meta text-warning">
-                        <AlertIcon size={13} className="shrink-0" aria-hidden="true" />
-                        No playlist assigned
-                      </span>
-                    )}
-                  </div>
+                  <p className={`text-meta font-semibold ${isPending ? "text-info-cobalt" : online ? "text-cleared-green" : "text-pending-amber"}`}>
+                    {isPending ? "Awaiting pairing" : online ? "Online" : "Offline"}
+                  </p>
+                  <p className="hidden truncate text-meta text-ink-muted md:block">{list ?? "No playlist assigned"}</p>
+                  <p className="text-meta text-ink-soft md:text-right">{isPending ? "—" : relativeTime(screen.lastSeen)}</p>
                 </div>
               );
             })}
-
-            {pending.map((screen) => (
-              <div
-                key={screen.id}
-                className="flex min-h-[7.5rem] flex-col justify-between gap-3 bg-surface-1 p-5"
-              >
-                <span className="text-eyebrow text-info">Awaiting pairing</span>
-                <div>
-                  <p className="font-mono text-h2 tracking-[0.15em] text-fg tnum">{screen.pairingCode}</p>
-                  <p className="mt-1 text-meta text-fg-subtle">Enter this code on the Screens page.</p>
-                </div>
-              </div>
-            ))}
           </div>
-        </div>
+        </section>
       )}
 
       {/* Catalog, kept quiet: two cells in the same hairline language, mono counts. */}
-      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-border bg-border">
+      <div className="grid grid-cols-1 overflow-hidden rounded-lg border border-surface-border bg-surface-card sm:grid-cols-2">
         <Link
           href="/admin/playlists"
-          className="flex items-center justify-between gap-3 bg-surface-1 px-5 py-4 transition-colors hover:bg-surface-2"
+          className="flex items-center justify-between gap-3 border-b border-surface-border px-4 py-3 transition-colors hover:bg-surface-hover sm:border-b-0 sm:border-r"
         >
           <span className="flex items-center gap-2 text-meta text-fg-muted">
-            <PlaylistIcon size={14} className="text-fg-subtle" aria-hidden="true" /> Playlists
+            <PlaylistIcon size={14} className="text-ink-soft" aria-hidden="true" /> Playlists
           </span>
           <span className="font-mono text-label text-fg tnum">{playlists.length}</span>
         </Link>
         <Link
           href="/admin/media"
-          className="flex items-center justify-between gap-3 bg-surface-1 px-5 py-4 transition-colors hover:bg-surface-2"
+          className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-surface-hover"
         >
           <span className="flex items-center gap-2 text-meta text-fg-muted">
-            <MediaIcon size={14} className="text-fg-subtle" aria-hidden="true" /> Library
+            <MediaIcon size={14} className="text-ink-soft" aria-hidden="true" /> Library
           </span>
           <span className="font-mono text-label text-fg tnum">
             {mediaItems.length}

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Image from "next/image";
 import { PlaybackItem } from "@/hooks/useSignageLoop";
 
 interface PlaybackViewProps {
@@ -34,7 +35,7 @@ export function PlaybackView({
           {nextItem.type === "vid" ? (
             <video src={nextItem.url} preload="auto" muted playsInline />
           ) : (
-            <img src={nextItem.url} alt="" className="w-full h-full object-cover" />
+            <Image src={nextItem.url} alt="" fill sizes="100vw" className="object-cover" />
           )}
         </div>
       )}
@@ -57,11 +58,13 @@ export function PlaybackView({
               className="w-full h-full object-cover"
             />
           ) : (
-            <img
+            <Image
               src={currentItem.url}
               alt=""
               role="presentation"
-              className="w-full h-full object-cover"
+              fill
+              sizes="100vw"
+              className="object-cover"
             />
           )}
         </div>
@@ -101,7 +104,7 @@ function FadingLayer({
       {item.type === "vid" ? (
         <video src={item.url} muted className="w-full h-full object-cover" />
       ) : (
-        <img src={item.url} alt="" className="w-full h-full object-cover" />
+        <Image src={item.url} alt="" fill sizes="100vw" className="object-cover" />
       )}
     </div>
   );

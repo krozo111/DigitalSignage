@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import { errorMessage } from "@/lib/errors";
 import { MediaItem } from "@/lib/services/mediaService";
@@ -8,6 +9,8 @@ import { getAllPlaylists } from "@/lib/services/playlistService";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { StatStrip } from "@/components/ui/StatStrip";
+import { ErrorState } from "@/components/ui/ErrorState";
 import { MediaIcon } from "@/components/icons";
 import { PageHeader } from "@/components/PageHeader";
 import { useMediaLibrary } from "@/features/media/hooks/useMediaLibrary";
@@ -16,19 +19,35 @@ import { MediaUploader } from "@/features/media/components/MediaUploader";
 import {
   MediaFilters,
   type MediaTypeFilter,
+  type MediaViewMode,
 } from "@/features/media/components/MediaFilters";
 import { MediaGrid } from "@/features/media/components/MediaGrid";
+import { MediaInspector } from "@/features/media/components/MediaInspector";
 
 export default function MediaLibraryPage() {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
   useDocumentTitle("Media — Yugo Signage");
-  const { mediaList, loading, uploading, progress, upload, remove } = useMediaLibrary();
+  const { mediaList, loading, error, uploading, progress, upload, remove, refresh } = useMediaLibrary();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<MediaTypeFilter>("all");
+  const [viewMode, setViewMode] = useState<MediaViewMode>("grid");
   const [isDragOver, setIsDragOver] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
   const [deleteWarning, setDeleteWarning] = useState("");
+  const selectedId = searchParams.get("media");
+  const selectedItem = selectedId ? mediaList.find((item) => item.id === selectedId) ?? null : null;
+
+  const setSelection = (mediaId: string | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (mediaId) params.set("media", mediaId);
+    else params.delete("media");
+    const query = params.toString();
+    router.replace(`${pathname}${query ? `?${query}` : ""}`, { scroll: false });
+  };
 
   const filteredMedia = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -38,6 +57,10 @@ export default function MediaLibraryPage() {
       return matchesSearch && matchesType;
     });
   }, [mediaList, searchQuery, typeFilter]);
+
+  const imageCount = mediaList.filter((item) => item.type === "img").length;
+  const videoCount = mediaList.filter((item) => item.type === "vid").length;
+  const totalSizeMB = (mediaList.reduce((total, item) => total + item.size, 0) / 1024 / 1024).toFixed(0);
 
   const handleDropZoneDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -73,6 +96,7 @@ export default function MediaLibraryPage() {
   const confirmDelete = async () => {
     if (!deleteTarget) return;
     await remove(deleteTarget.id, deleteTarget.storagePath);
+    if (selectedId === deleteTarget.id) setSelection(null);
     setDeleteTarget(null);
     setDeleteWarning("");
   };
@@ -81,12 +105,21 @@ export default function MediaLibraryPage() {
     <div className="space-y-6">
       <PageHeader
         title="Media Library"
-        description="Image and video management (Max 50MB per file)."
+        description="Manage the images and videos shown on your paired screens."
         actions={
           <div className="w-full md:w-auto">
             <MediaUploader uploading={uploading} progress={progress} onUpload={upload} />
           </div>
         }
+      />
+
+      <StatStrip
+        items={[
+          { label: "Total files", value: mediaList.length, detail: "Images and videos" },
+          { label: "Images", value: imageCount, detail: "Still content" },
+          { label: "Videos", value: videoCount, detail: "Motion content" },
+          { label: "Storage", value: `${totalSizeMB} MB`, detail: "50 MB max per file" },
+        ]}
       />
 
       {!loading && mediaList.length > 0 && (
@@ -95,6 +128,8 @@ export default function MediaLibraryPage() {
           onSearchChange={setSearchQuery}
           typeFilter={typeFilter}
           onTypeChange={setTypeFilter}
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
         />
       )}
 
@@ -103,7 +138,9 @@ export default function MediaLibraryPage() {
         onDragOver={handleDropZoneDragOver}
         onDragLeave={() => setIsDragOver(false)}
       >
-        {loading ? (
+        {error && mediaList.length === 0 ? (
+          <ErrorState onRetry={refresh} />
+        ) : loading ? (
           <LoadingSkeleton variant="grid" count={8} />
         ) : mediaList.length === 0 ? (
           <EmptyState
@@ -114,11 +151,17 @@ export default function MediaLibraryPage() {
             className={isDragOver ? "border-accent bg-accent/5 text-accent" : ""}
           />
         ) : (
-          <MediaGrid
-            items={filteredMedia}
-            searchQuery={searchQuery}
-            onDelete={requestDelete}
-          />
+          <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
+            <MediaGrid
+              items={filteredMedia}
+              searchQuery={searchQuery}
+              onDelete={requestDelete}
+              viewMode={viewMode}
+              selectedId={selectedId}
+              onSelect={(item) => setSelection(item.id)}
+            />
+            {selectedItem && <MediaInspector key={selectedItem.id} item={selectedItem} onClose={() => setSelection(null)} onDelete={requestDelete} />}
+          </div>
         )}
       </div>
 

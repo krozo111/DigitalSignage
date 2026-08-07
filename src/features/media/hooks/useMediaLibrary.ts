@@ -13,15 +13,18 @@ import {
 export function useMediaLibrary() {
   const [mediaList, setMediaList] = useState<MediaItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<unknown>(null);
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
 
   const fetchMedia = useCallback(async () => {
     try {
       setLoading(true);
+      setError(null);
       const data = await getAllMedia();
       setMediaList(data);
     } catch (error) {
+      setError(error);
       console.error("Error fetching media:", error);
     } finally {
       setLoading(false);
@@ -60,5 +63,5 @@ export function useMediaLibrary() {
     }
   }, []);
 
-  return { mediaList, loading, uploading, progress, upload, remove };
+  return { mediaList, loading, error, uploading, progress, upload, remove, refresh: fetchMedia };
 }

@@ -58,9 +58,9 @@ export function PairScreenForm({ playlists, onClaim }: PairScreenFormProps) {
   };
 
   return (
-    <div className="rounded-xl border border-border bg-surface-1 p-6">
-      <h2 className="text-h2 mb-4 flex items-center gap-2 text-fg">
-        <LinkIcon className="text-accent" /> Pair New Screen
+    <section className="rounded-lg border border-surface-border bg-surface-card p-4">
+      <h2 className="text-label mb-4 flex items-center gap-2 text-ink">
+        <LinkIcon className="text-action-coral" /> Pair a new screen
       </h2>
       <form onSubmit={handleSubmit} className="flex flex-col md:flex-row gap-4 items-end">
         <div className="w-full md:w-auto flex-1">
@@ -105,6 +105,6 @@ export function PairScreenForm({ playlists, onClaim }: PairScreenFormProps) {
           {claiming ? "Connecting" : "Pair"}
         </Button>
       </form>
-    </div>
+    </section>
   );
 }
