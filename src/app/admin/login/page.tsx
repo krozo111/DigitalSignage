@@ -39,8 +39,9 @@ export default function AdminLogin() {
       });
 
       if (!res.ok) {
+        const body = await res.json().catch(() => null) as { error?: string } | null;
         await signOut(auth);
-        setError("Login failed: server rejected session.");
+        setError(body?.error ?? `Login failed (HTTP ${res.status}).`);
         return;
       }
 
