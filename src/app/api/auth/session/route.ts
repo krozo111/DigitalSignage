@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminApp } from "@/lib/firebase-admin.config";
-import { getAuth } from "firebase-admin/auth";
 
 export const runtime = "nodejs";
 
@@ -15,6 +13,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Token requerido" }, { status: 400 });
     }
 
+    const [{ adminApp }, { getAuth }] = await Promise.all([
+      import("@/lib/firebase-admin.config"),
+      import("firebase-admin/auth"),
+    ]);
     const auth = getAuth(adminApp);
 
     const decodedToken = await auth.verifyIdToken(idToken, true);
@@ -69,8 +71,13 @@ export async function POST(request: NextRequest) {
     });
 
     return response;
-  } catch {
-    return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+  } catch (err) {
+    const code = (err as { code?: string }).code ?? "";
+    if (code.startsWith("auth/")) {
+      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+    }
+    console.error("[auth] session creation failed:", err instanceof Error ? err.message : "unknown error");
+    return NextResponse.json({ error: "Configuración de autenticación no disponible" }, { status: 500 });
   }
 }
 
@@ -79,6 +86,10 @@ export async function DELETE(request: NextRequest) {
 
   if (cookie) {
     try {
+      const [{ adminApp }, { getAuth }] = await Promise.all([
+        import("@/lib/firebase-admin.config"),
+        import("firebase-admin/auth"),
+      ]);
       const auth = getAuth(adminApp);
       const decoded = await auth.verifySessionCookie(cookie);
       await auth.revokeRefreshTokens(decoded.sub);
