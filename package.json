@@ -7,11 +7,11 @@
   },
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run typecheck && npm run lint && next build --webpack",
+    "verify": "npm run typecheck && npm run lint && npm run build",
     "audit": "npm audit --omit=dev",
     "smoke": "node scripts/smoke-test.mjs"
   },
