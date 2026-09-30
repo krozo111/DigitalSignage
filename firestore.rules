@@ -2,10 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // App Check is enforced by Firebase Console at the product boundary. The
-    // Firestore rules Request object does not expose an App Check claim, so it
-    // cannot be validated here. Keep this helper as the explicit public-player
-    // boundary and verify enforcement operationally before deployment.
+    // App Check must be enforced in Firebase Console at the product boundary.
+    // Firestore rules do not expose an App Check claim, so this helper cannot
+    // validate it. Confirm Console enforcement before releasing these rules.
     function allowPublicPlayerOperation() {
       return true;
     }
@@ -21,10 +20,10 @@ service cloud.firestore {
 
     // ============================================================
     // SCREENS
-    //  - get (public, App Check required): players need to read their own doc by ID
+    //  - get (public; requires Console App Check enforcement): player reads by ID
     //  - list: admin only
-    //  - create (no auth, App Check required): player self-registration
-    //  - update by player: only heartbeat fields, App Check required
+    //  - create (no auth): player self-registration; Console App Check enforcement is required
+    //  - update by player: heartbeat/pairing refresh; Console App Check enforcement is required
     //  - update / delete by admin: anything goes
     // ============================================================
     match /screens/{screenId} {
@@ -38,9 +37,9 @@ service cloud.firestore {
         && request.resource.data.name == "New TV"
         && request.resource.data.status == "online"
         && request.resource.data.pairingCode is string
-        && request.resource.data.pairingCode.size() == 6
+        && request.resource.data.pairingCode.matches('^[A-Z0-9]{6}$')
         && request.resource.data.playlistId == null
-        && request.resource.data.lastSeen is timestamp
+        && request.resource.data.lastSeen == request.time
         && request.resource.data.pairingCodeExpiresAt is timestamp
         && request.resource.data.keys().hasOnly([
           'pairingCode', 'pairingCodeExpiresAt', 'name', 'playlistId', 'status', 'lastSeen'
@@ -50,7 +49,7 @@ service cloud.firestore {
       // Unauthenticated player can:
       //   - update heartbeat (lastSeen + status)
       //   - refresh an EXPIRED pairing code on an unclaimed screen
-      // Both paths require App Check.
+      // Both player paths rely on App Check enforcement in Firebase Console.
       allow update: if isAdmin()
         || (
           allowPublicPlayerOperation()
@@ -60,7 +59,7 @@ service cloud.firestore {
             (
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'status'])
               && request.resource.data.status in ['online', 'offline']
-              && request.resource.data.lastSeen is timestamp
+              && request.resource.data.lastSeen == request.time
             )
             // Pairing-code refresh: only on unclaimed screens whose code already expired
             || (
@@ -69,16 +68,17 @@ service cloud.firestore {
               && resource.data.pairingCodeExpiresAt is timestamp
               && resource.data.pairingCodeExpiresAt < request.time
               && request.resource.data.pairingCode is string
-              && request.resource.data.pairingCode.size() == 6
+              && request.resource.data.pairingCode.matches('^[A-Z0-9]{6}$')
               && request.resource.data.pairingCodeExpiresAt is timestamp
               && request.resource.data.pairingCodeExpiresAt > request.time
+              && request.resource.data.lastSeen == request.time
             )
           )
         );
     }
 
     // ============================================================
-    // PLAYLISTS — get by ID requires App Check, list/write admin only
+    // PLAYLISTS — public get relies on Console App Check enforcement; list/write admin only
     // ============================================================
     match /playlists/{playlistId} {
       allow get: if allowPublicPlayerOperation();
@@ -87,7 +87,7 @@ service cloud.firestore {
     }
 
     // ============================================================
-    // MEDIA — get by ID requires App Check, list/write admin only
+    // MEDIA — public get relies on Console App Check enforcement; list/write admin only
     // ============================================================
     match /media/{mediaId} {
       allow get: if allowPublicPlayerOperation();

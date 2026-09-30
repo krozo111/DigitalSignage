@@ -5,12 +5,12 @@ import {
 
 // Helper to strictly require Auth
 const assertAuth = () => {
-  if (!auth.currentUser) throw new Error("Acceso denegado: Se requiere autenticación.");
+  if (!auth.currentUser) throw new Error("Access denied. Sign in to continue.");
 };
 
 export interface PlaylistItem {
   mediaId: string;
-  duration: number; // en segundos
+  duration: number; // seconds
   order: number;
 }
 

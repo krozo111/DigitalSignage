@@ -223,7 +223,7 @@ export function ScreensList({
       <ConfirmDialog
         open={purgeOpen}
         title="Purge Stale Screens"
-        message={'This will permanently delete all screens that are still named "New TV" or haven\'t been seen in 24+ hours. Continue?'}
+        message={'This permanently deletes only unclaimed screens named "New TV" (or left unnamed) that have not checked in for more than 24 hours. Continue?'}
         confirmText="Purge"
         cancelText="Cancel"
         variant="danger"

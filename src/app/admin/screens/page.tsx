@@ -3,6 +3,7 @@
 import { PageHeader } from "@/components/PageHeader";
 import { StatStrip } from "@/components/ui/StatStrip";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { RefreshNotice } from "@/components/ui/RefreshNotice";
 import { PairScreenForm } from "@/features/screens/components/PairScreenForm";
 import { ScreensList } from "@/features/screens/components/ScreensList";
 import { useScreens } from "@/features/screens/hooks/useScreens";
@@ -30,6 +31,7 @@ export default function ScreensPage() {
           { label: "Playlists", value: playlists.length, detail: "Available to assign" },
         ]}
       />
+      {error && screens.length > 0 && <RefreshNotice onRetry={refresh} />}
       {error && screens.length === 0 ? (
         <ErrorState onRetry={refresh} />
       ) : (

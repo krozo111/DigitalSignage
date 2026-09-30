@@ -34,6 +34,7 @@ export function useCachedQuery<T>(
   const [data, setData] = useState<T | undefined>(cached?.data);
   const [loading, setLoading] = useState<boolean>(!cached);
   const [error, setError] = useState<unknown>(null);
+  const [reload, setReload] = useState(0);
 
   useEffect(() => {
     let alive = true;
@@ -48,9 +49,10 @@ export function useCachedQuery<T>(
     listeners.set(key, subscribers);
 
     const current = store.get(key) as Entry<T> | undefined;
-    const fresh = current && Date.now() - current.ts < ttlMs;
+    const fresh = current && Date.now() - current.ts < ttlMs && reload === 0;
 
     if (!fresh) {
+      setLoading(true);
       let p = inflight.get(key) as Promise<T> | undefined;
       if (!p) {
         p = fetcher()
@@ -80,9 +82,14 @@ export function useCachedQuery<T>(
       alive = false;
       subscribers.delete(sync);
     };
-  }, [key, ttlMs, fetcher]);
+  }, [key, ttlMs, fetcher, reload]);
 
-  const refresh = () => invalidate(key);
+  const refresh = () => {
+    store.delete(key);
+    setError(null);
+    setLoading(true);
+    setReload((value) => value + 1);
+  };
   return { data, loading, error, refresh };
 }
 

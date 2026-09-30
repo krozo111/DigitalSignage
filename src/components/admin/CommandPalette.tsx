@@ -80,7 +80,7 @@ export function CommandPalette() {
     <>
       <button type="button" onClick={() => { setActiveIndex(0); setOpen(true); }} className="hidden min-w-0 max-w-md flex-1 items-center gap-2 rounded-md border border-surface-border bg-surface-sunken px-3 text-left lg:flex" aria-label="Open command palette">
         <span className="text-meta text-ink-soft" aria-hidden="true">⌕</span>
-        <span className="h-8 min-w-0 flex-1 py-1.5 text-label text-ink-soft">Search screens, playlists or media…</span>
+        <span className="h-8 min-w-0 flex-1 py-1.5 text-label text-ink-soft">Search actions…</span>
         <kbd className="text-meta text-ink-soft">⌘K</kbd>
       </button>
       <button type="button" onClick={() => { setActiveIndex(0); setOpen(true); }} className="rounded-md p-2 text-ink-muted hover:bg-surface-hover hover:text-ink lg:hidden" aria-label="Open search and actions">⌕</button>

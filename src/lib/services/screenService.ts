@@ -37,7 +37,7 @@ export const claimScreen = async (pairingCode: string, name: string, playlistId:
 
   // Reject expired pairing codes
   const expiresAt = data.pairingCodeExpiresAt as Timestamp | undefined;
-  if (expiresAt && expiresAt.toMillis() < Date.now()) {
+  if (!(expiresAt instanceof Timestamp) || expiresAt.toMillis() <= Date.now()) {
     throw new Error("Pairing code expired. Refresh the screen to generate a new one.");
   }
 

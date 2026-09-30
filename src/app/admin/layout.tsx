@@ -10,14 +10,13 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const pathname = headerList.get("x-pathname") ?? "";
   const sessionCookie = (await cookies()).get("admin-session")?.value;
 
-  // The login page and all requests without a session must not load the
-  // Firebase Admin SDK. Netlify bundles that server-only dependency into the
-  // function; keeping it behind the authenticated branch prevents a public
-  // login request from failing before the client can sign in. The proxy owns
-  // the UX redirect for protected /admin routes without this cookie.
-  if (pathname.endsWith("/admin/login") || !sessionCookie) {
+  // Keep the public login page outside the Firebase Admin SDK branch. The
+  // server-side redirect below is defense in depth if the proxy is bypassed.
+  if (pathname === "/admin/login") {
     return <>{children}</>;
   }
+
+  if (!sessionCookie) redirect("/admin/login");
 
   const { getAdminSession } = await import("@/lib/auth/session");
   const session = await getAdminSession();

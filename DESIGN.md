@@ -21,7 +21,7 @@ colors:
   surface-border-strong: "#CFCBDA"
   ink: "#1A1726"
   ink-muted: "#5A5468"
-  ink-soft: "#8C8699"
+  ink-soft: "#686274"
   surface-app-dark: "#141021"
   surface-card-dark: "#1C1730"
   surface-sunken-dark: "#17122A"
@@ -245,7 +245,7 @@ Two brand colors, three semantic states, and a violet-tinted neutral ramp that n
 - **Surface Border Strong** (`#CFCBDA` / dark `#443A63`): input borders on focus-adjacent states, scrollbar thumbs, dividers that must survive a dense table.
 - **Ink** (`#1A1726` / dark `#F5F4F8`): primary text, table values, headings.
 - **Ink Muted** (`#5A5468` / dark `#B9B3C6`): secondary values, subtitles, row metadata.
-- **Ink Soft** (`#8C8699` / dark `#8A83A0`): column labels, placeholders, timestamps, disabled text.
+- **Ink Soft** (`#686274` / dark `#8A83A0`): column labels, placeholders, timestamps, disabled text.
 
 ### Semantic states
 
@@ -373,7 +373,7 @@ Below 1024px the sidebar's job splits in two: a fixed tab bar for the handful of
 Context and search, not decoration.
 
 - **Left — breadcrumb:** `Yugo › Signage › {section} › {page}`, Caption role, `ink-soft` for ancestors, `ink` Body-strong for the current page. Separators are `›` in `ink-soft`. Only the Yugo segment is a link to Home. Section drops below 1024px, the leading segments drop below 768px, and the page title always survives.
-- **Center — command search:** `surface-sunken` field, 34px, 8px radius, `min(420px, 34vw)`, search icon, placeholder "Search screens, playlists or media…", `⌘K` kbd hint on the right. It is a trigger, not an input: clicking or pressing `⌘K` opens the command palette.
+- **Center — command search:** `surface-sunken` field, 34px, 8px radius, `min(420px, 34vw)`, search icon, placeholder "Search actions…", `⌘K` kbd hint on the right. It is a trigger, not an input: clicking or pressing `⌘K` opens the command palette.
 - **Right — context slot:** page-supplied status and secondary actions such as connection state or export, then the user menu. Maximum two page-supplied items; anything more belongs in the page header.
 
 ### Command Palette

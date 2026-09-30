@@ -27,12 +27,14 @@ export async function getAdminSession(): Promise<AdminSession | null> {
     const auth = getAuth(adminApp);
     const decoded = await auth.verifySessionCookie(sessionCookie, false);
 
-    if (decoded.email !== adminEmail) {
+    if (decoded.email?.toLowerCase() !== adminEmail.toLowerCase()) {
       if (process.env.NODE_ENV !== "production") {
         console.warn("[auth] email mismatch:", decoded.email, "vs", adminEmail);
       }
       return null;
     }
+
+    if (decoded.admin !== true) return null;
 
     const now = Date.now();
     const last = lastRevokeCheck.get(decoded.sub) ?? 0;

@@ -29,6 +29,7 @@ export function StatusOverlay({ offline }: StatusOverlayProps) {
         />
         {offline ? "Offline" : "Connected"}
       </span>
+      {offline && <span role="status" className="rounded bg-black/60 px-2 py-1 text-[10px] text-white">Media files are not saved for offline playback</span>}
       <LiveClock />
     </div>
   );

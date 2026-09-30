@@ -3,14 +3,14 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 
 const SESSION_COOKIE_NAME = "admin-session";
-const SESSION_DURATION_MS = 60 * 60 * 24 * 5 * 1000; // 5 days
+const SESSION_DURATION_MS = 60 * 60 * 8 * 1000; // 8 hours
 
 export async function POST(request: NextRequest) {
   try {
     const { idToken } = await request.json();
 
     if (!idToken || typeof idToken !== "string") {
-      return NextResponse.json({ error: "Token requerido" }, { status: 400 });
+      return NextResponse.json({ error: "Token is required." }, { status: 400 });
     }
 
     const [{ adminApp }, { getAuth }] = await Promise.all([
@@ -23,11 +23,11 @@ export async function POST(request: NextRequest) {
 
     const adminEmail = process.env.ADMIN_EMAIL;
     if (!adminEmail) {
-      return NextResponse.json({ error: "Configuración del servidor incorrecta" }, { status: 500 });
+      return NextResponse.json({ error: "Server authentication is not configured." }, { status: 500 });
     }
 
-    if (decodedToken.email !== adminEmail) {
-      return NextResponse.json({ error: "Acceso denegado: email no autorizado" }, { status: 403 });
+    if (decodedToken.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+      return NextResponse.json({ error: "Access denied: this email is not authorized." }, { status: 403 });
     }
 
     // The email match pins identity, but Firestore rules authorize by the
@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "La cuenta no tiene permisos de admin. Ejecuta scripts/set-admin-claim.mjs para esta cuenta.",
+            "This account does not have admin access. Run scripts/set-admin-claim.mjs for this account.",
         },
         { status: 403 }
       );
@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
     // Reject very stale idTokens (>10 min since auth_time) to limit replay window
     const authTimeMs = decodedToken.auth_time * 1000;
     if (Date.now() - authTimeMs > 10 * 60 * 1000) {
-      return NextResponse.json({ error: "Token expirado, vuelve a iniciar sesión" }, { status: 401 });
+      return NextResponse.json({ error: "Session expired. Sign in again." }, { status: 401 });
     }
 
     const sessionCookie = await auth.createSessionCookie(idToken, {
@@ -74,10 +74,10 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     const code = (err as { code?: string }).code ?? "";
     if (code.startsWith("auth/")) {
-      return NextResponse.json({ error: "Token inválido" }, { status: 401 });
+      return NextResponse.json({ error: "Invalid token." }, { status: 401 });
     }
     console.error("[auth] session creation failed:", err instanceof Error ? err.message : "unknown error");
-    return NextResponse.json({ error: "Configuración de autenticación no disponible" }, { status: 500 });
+    return NextResponse.json({ error: "Authentication is temporarily unavailable." }, { status: 500 });
   }
 }
 
@@ -94,7 +94,7 @@ export async function DELETE(request: NextRequest) {
       const decoded = await auth.verifySessionCookie(cookie);
       await auth.revokeRefreshTokens(decoded.sub);
     } catch {
-      // Cookie inválida o expirada — no hace falta revocar
+      // Invalid or expired cookie; there is no valid session to revoke.
     }
   }
 

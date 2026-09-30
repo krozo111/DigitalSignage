@@ -9,13 +9,9 @@ const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
 
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/gif", "image/webp", "video/mp4", "video/quicktime", "video/webm"];
 
-const MAGIC_BYTES: Record<string, number[]> = {
+const SIGNATURES: Record<string, number[]> = {
   "image/jpeg": [0xff, 0xd8, 0xff],
-  "image/png": [0x89, 0x50, 0x4e, 0x47],
-  "image/gif": [0x47, 0x49, 0x46, 0x38],
-  "image/webp": [0x52, 0x49, 0x46, 0x46],
-  "video/mp4": [0x00, 0x00, 0x00, 0x18], // ftyp box (relaxed check)
-  "video/quicktime": [0x00, 0x00, 0x00, 0x14], // moov box (relaxed check)
+  "image/png": [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a],
   "video/webm": [0x1a, 0x45, 0xdf, 0xa3],
 };
 
@@ -33,23 +29,33 @@ function sanitizeFileName(name: string): string {
 
 async function validateFileType(file: File): Promise<void> {
   if (!ALLOWED_TYPES.includes(file.type)) {
-    throw new Error(`Tipo de archivo no permitido: ${file.type}. Solo se aceptan imágenes y videos.`);
+    throw new Error(`File type not allowed: ${file.type || "unknown"}. Choose a supported image or video.`);
   }
 
-  const magic = MAGIC_BYTES[file.type];
-  if (magic) {
-    const buffer = await file.slice(0, magic.length).arrayBuffer();
-    const bytes = new Uint8Array(buffer);
-    const matches = magic.every((b, i) => bytes[i] === b);
-    if (!matches) {
-      throw new Error(`El archivo no coincide con su tipo declarado (${file.type}).`);
-    }
+  const bytes = new Uint8Array(await file.slice(0, 12).arrayBuffer());
+  const startsWith = (signature: number[]) => signature.every((byte, index) => bytes[index] === byte);
+  let matches = SIGNATURES[file.type] ? startsWith(SIGNATURES[file.type]) : false;
+
+  if (file.type === "image/gif") {
+    const header = new TextDecoder().decode(bytes.slice(0, 6));
+    matches = header === "GIF87a" || header === "GIF89a";
+  } else if (file.type === "image/webp") {
+    matches = startsWith([0x52, 0x49, 0x46, 0x46]) &&
+      new TextDecoder().decode(bytes.slice(8, 12)) === "WEBP";
+  } else if (file.type === "video/mp4" || file.type === "video/quicktime") {
+    const isFtyp = new TextDecoder().decode(bytes.slice(4, 8)) === "ftyp";
+    const brand = new TextDecoder().decode(bytes.slice(8, 12));
+    matches = isFtyp && (file.type === "video/mp4" || brand === "qt  ");
+  }
+
+  if (!matches) {
+    throw new Error(`File content does not match its declared type (${file.type}).`);
   }
 }
 
 // Helper to strictly require Auth
 const assertAuth = () => {
-  if (!auth.currentUser) throw new Error("Acceso denegado: Se requiere autenticación.");
+  if (!auth.currentUser) throw new Error("Access denied. Sign in to continue.");
 };
 
 export interface MediaItem {
@@ -63,7 +69,7 @@ export interface MediaItem {
 }
 
 /**
- * Sube un archivo a Firebase Storage y guarda la referencia en Firestore
+ * Upload a file to Firebase Storage and save its Firestore record.
  */
 export const uploadMedia = async (
   file: File, 
@@ -72,14 +78,14 @@ export const uploadMedia = async (
   assertAuth();
 
   if (file.size > MAX_FILE_SIZE) {
-    throw new Error(`El archivo ${file.name} excede el límite de 50MB.`);
+    throw new Error(`${file.name} exceeds the 50 MB file limit.`);
   }
 
   await validateFileType(file);
 
   // 1. Upload to Storage
   const safeName = sanitizeFileName(file.name);
-  const storagePath = `media/${auth.currentUser?.uid}/${Date.now()}_${safeName}`;
+  const storagePath = `media/${auth.currentUser?.uid}/${crypto.randomUUID()}_${safeName}`;
   const storageRef = ref(storage, storagePath);
   
   const uploadTask = uploadBytesResumable(storageRef, file);
@@ -91,23 +97,43 @@ export const uploadMedia = async (
         const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
         if (onProgress) onProgress(progress);
       },
-      (error) => reject(error),
-      async () => {
-        // 2. Obtain URL
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        const type = file.type.startsWith("video/") ? "vid" : file.type.startsWith("image/") ? "img" : "unknown";
-
-        // 3. Save to Firestore
-        const docRef = await addDoc(collection(db, "media"), {
-          name: file.name,
-          url,
-          type,
-          size: file.size,
-          storagePath,
-          createdAt: serverTimestamp(),
+      (error) => {
+        void deleteObject(storageRef).catch((cleanupError) => {
+          if ((cleanupError as { code?: string }).code !== "storage/object-not-found") {
+            console.error("Storage cleanup failed after an interrupted upload.", cleanupError);
+          }
         });
-        
-        resolve(docRef.id);
+        reject(error);
+      },
+      () => {
+        void (async () => {
+          try {
+            const url = await getDownloadURL(uploadTask.snapshot.ref);
+            const type = file.type.startsWith("video/") ? "vid" : "img";
+            const docRef = await addDoc(collection(db, "media"), {
+              name: file.name,
+              url,
+              type,
+              size: file.size,
+              storagePath,
+              createdAt: serverTimestamp(),
+            });
+            resolve(docRef.id);
+          } catch (error) {
+            let cleanupFailed = false;
+            try {
+              await deleteObject(storageRef);
+            } catch (cleanupError) {
+              if ((cleanupError as { code?: string }).code !== "storage/object-not-found") {
+                cleanupFailed = true;
+                console.error("Uploaded object cleanup failed after metadata write error.", cleanupError);
+              }
+            }
+            reject(cleanupFailed
+              ? new Error("Upload could not be finalized, and the unused Storage file could not be removed.")
+              : error);
+          }
+        })();
       }
     );
   });
@@ -126,26 +152,24 @@ export const getAllMedia = async (): Promise<MediaItem[]> => {
   } as MediaItem));
 };
 
+export const cleanupMediaStorage = async (storagePath: string): Promise<void> => {
+  assertAuth();
+  try {
+    await deleteObject(ref(storage, storagePath));
+  } catch (err) {
+    if ((err as { code?: string }).code !== "storage/object-not-found") throw err;
+  }
+};
+
 /**
- * Elimina un recurso de Storage, lo quita de cualquier playlist que lo referencie
- * (reindexando el orden) y borra el documento de Firestore. La limpieza de playlists
- * + el borrado del doc se hacen en un batch atómico para no dejar items colgando.
+ * Remove a media item and all playlist references atomically, then clean up its
+ * Storage object. Cleanup failures are reported without leaving broken playlists.
  */
-export const deleteMedia = async (id: string, storagePath: string): Promise<void> => {
+export const deleteMedia = async (id: string, storagePath: string): Promise<{ storageCleanupPending: boolean }> => {
   assertAuth();
 
-  // 1. Remove from Storage (idempotent: a missing object is fine)
-  const storageRef = ref(storage, storagePath);
-  try {
-    await deleteObject(storageRef);
-  } catch (err) {
-    const code = (err as { code?: string }).code;
-    if (code !== "storage/object-not-found") {
-      throw err;
-    }
-  }
-
-  // 2. Strip this media from every playlist that uses it, then delete the doc.
+  // Remove playlist references before deleting the object so a failed database
+  // write cannot leave playlists pointing to an unavailable file.
   // Firestore can't query an array of objects by a nested field, so we scan
   // playlists and filter in memory — acceptable at this catalog size.
   const batch = writeBatch(db);
@@ -162,4 +186,14 @@ export const deleteMedia = async (id: string, storagePath: string): Promise<void
   batch.delete(doc(db, "media", id));
 
   await batch.commit();
+
+  try {
+    await cleanupMediaStorage(storagePath);
+    return { storageCleanupPending: false };
+  } catch (err) {
+    const code = (err as { code?: string }).code;
+    if (code === "storage/object-not-found") return { storageCleanupPending: false };
+    console.error("Media record deleted but Storage cleanup failed.", err);
+    return { storageCleanupPending: true };
+  }
 };

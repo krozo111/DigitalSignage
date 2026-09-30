@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef } from "react";
 import { db } from "@/lib/firebase.config";
-import { doc, collection, addDoc, onSnapshot, getDoc, setDoc, updateDoc, Timestamp } from "firebase/firestore";
+import { doc, collection, addDoc, onSnapshot, getDoc, setDoc, updateDoc, Timestamp, serverTimestamp } from "firebase/firestore";
 import { PlaybackItem, useSignageLoop } from "@/hooks/useSignageLoop";
 import QRCode from "qrcode";
 import { IdleScreen } from "@/features/player/components/IdleScreen";
@@ -43,6 +43,17 @@ export default function Home() {
 
   useEffect(() => {
     setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    const updateConnection = () => setNetworkError(!navigator.onLine);
+    updateConnection();
+    window.addEventListener("online", updateConnection);
+    window.addEventListener("offline", updateConnection);
+    return () => {
+      window.removeEventListener("online", updateConnection);
+      window.removeEventListener("offline", updateConnection);
+    };
   }, []);
 
   useEffect(() => {
@@ -98,7 +109,7 @@ export default function Home() {
         name: "New TV",
         playlistId: null,
         status: "online",
-        lastSeen: new Date(),
+        lastSeen: serverTimestamp(),
       });
 
       localStorage.setItem("dsf_screen_id", docRef.id);
@@ -208,7 +219,7 @@ export default function Home() {
         updateDoc(doc(db, "screens", snap.id), {
           pairingCode: fresh,
           pairingCodeExpiresAt: new Date(Date.now() + PAIRING_CODE_TTL_MS),
-          lastSeen: new Date(),
+          lastSeen: serverTimestamp(),
         }).catch((err) => console.warn("Failed to refresh pairing code:", err));
       } else {
         setPairingCode(data.pairingCode || null);
@@ -280,7 +291,7 @@ export default function Home() {
 
     const sendHeartbeat = () => {
       const screenRef = doc(db, "screens", screenId);
-      setDoc(screenRef, { lastSeen: new Date(), status: "online" }, { merge: true })
+      setDoc(screenRef, { lastSeen: serverTimestamp(), status: "online" }, { merge: true })
         .catch(() => {});
     };
 

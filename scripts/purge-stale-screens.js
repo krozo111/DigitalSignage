@@ -4,7 +4,7 @@
  * Paste this ENTIRE block into your browser console while logged into
  * the admin panel (you need Firebase Auth to have write access).
  * 
- * It will delete all screen documents that:
+ * It will delete only unclaimed screen documents that:
  *   1. Have no name, or are still named "New TV" / "Nueva TV"
  *   2. Have a lastSeen older than 24 hours
  * 
@@ -33,7 +33,7 @@
     const lastSeen = data.lastSeen;
     
     // Check: unnamed/default name
-    const isUnnamed = !name || name === 'New TV' || name === 'Nueva TV' || name === 'Desconectada';
+    const isUnnamed = !name || name === 'New TV' || name === 'Nueva TV';
     
     // Check: stale (lastSeen > 24h ago)
     let isStale = false;
@@ -42,12 +42,10 @@
         ? lastSeen.toMillis() 
         : (lastSeen.toDate ? lastSeen.toDate().getTime() : new Date(lastSeen).getTime());
       isStale = (now - ms) > TWENTY_FOUR_HOURS;
-    } else {
-      isStale = true; // no lastSeen at all = definitely stale
     }
     
-    if (isUnnamed || isStale) {
-      const reason = isUnnamed ? `unnamed ("${name || '<empty>'}")` : `stale (${Math.round((now - (lastSeen?.toMillis?.() || 0)) / 3600000)}h old)`;
+    if (isUnnamed && isStale) {
+      const reason = `unclaimed and stale ("${name || '<empty>'}", ${Math.round((now - (lastSeen?.toMillis?.() || 0)) / 3600000)}h old)`;
       console.log(`  🗑️ DELETING: ${doc.id} — ${reason}`);
       await deleteDoc(doc.ref);
       deleted++;

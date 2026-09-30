@@ -27,7 +27,7 @@ The application is a Next.js App Router project in `mi-signage/`.
 - **`screens`**: `{ id, pairingCode, pairingCodeExpiresAt, name, playlistId, lastSeen, status }`
 - **`settings`**: reserved for admin configuration such as the global refresh time.
 
-The admin is a single Firebase Auth account with an `admin: true` custom claim. Players use App Check and restricted public document operations; admin reads and writes require the custom claim.
+The admin is a single Firebase Auth account with an `admin: true` custom claim and an eight-hour server-verified session cookie. The browser initializes Firebase App Check; production builds require the reCAPTCHA site key. Firestore and Storage enforcement still has to be enabled and confirmed in Firebase Console before public player operations are protected by App Check.
 
 ## 4. Pairing flow
 
@@ -42,13 +42,14 @@ The admin is a single Firebase Auth account with an `admin: true` custom claim. 
 - Videos start muted and inline, and advance on `ended`.
 - The next asset is prefetched to avoid black frames.
 - Playlist metadata is cached locally for reconnects.
-- A service-worker/Cache API layer is planned for actual offline asset availability; `localStorage` alone is metadata resilience, not media caching.
+- Media bytes are not cached by this app for offline playback; the player shows an offline warning when it detects a disconnected browser.
+- A service-worker/Cache API layer is still needed for actual offline asset availability. Reliable video support also needs Storage CORS and byte-range-aware caching, verified on target TVs.
 - The player performs a guarded daily reload to limit long-lived Smart TV browser memory growth.
 
 ## 6. Constraints
 
-- Maximum upload size: 50 MB per file, validated client-side and in Storage rules.
+- Maximum upload size: 50 MB per file, checked client-side and restricted in Storage rules. File signatures are validated in the browser; Storage rules only inspect declared MIME type, size, admin claim, and uid path.
 - Supported media: JPEG, PNG, GIF, WebP, MP4, QuickTime, and WebM.
-- Admin security: one allow-listed admin identity, server-verified session cookie, custom claim, App Check enforcement.
+- Admin security: one allow-listed admin identity, eight-hour server-verified session cookie, and custom claim. App Check enforcement status must be confirmed in Firebase Console.
 - UI: the visual source of truth is `DESIGN.md`; light and dark themes are both first-class.
 - Runtime: Node 24 LTS, Next.js 16 App Router, React 19, TypeScript strict mode.

@@ -29,7 +29,7 @@
   --surface-border-strong: #cfcbda;
   --ink: #1a1726;
   --ink-muted: #5a5468;
-  --ink-soft: #8c8699;
+  --ink-soft: #686274;
 
   /* Existing semantic aliases stay available while modules migrate. */
   --background: var(--surface-app);

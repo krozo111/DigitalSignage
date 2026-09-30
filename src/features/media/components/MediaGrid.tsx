@@ -45,11 +45,13 @@ export function MediaGrid({ items, searchQuery, onDelete, selectedId, onSelect, 
           <div className="divide-y divide-surface-border">
             <div className="hidden grid-cols-[minmax(0,1.5fr)_7rem_8rem_7rem] gap-4 bg-surface-sunken px-4 py-2.5 text-eyebrow text-ink-soft sm:grid"><span>Media</span><span>Type</span><span>Size</span><span className="text-right">Action</span></div>
             {displayed.map((item) => (
-              <div key={item.id} role="button" tabIndex={0} data-selected={selectedId === item.id ? "true" : undefined} onClick={() => onSelect?.(item)} onKeyDown={(event) => { if ((event.key === "Enter" || event.key === " ") && onSelect) { event.preventDefault(); onSelect(item); } }} className={`grid cursor-pointer grid-cols-[minmax(0,1fr)_5rem] items-center gap-3 px-4 py-3 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-signal-mint sm:grid-cols-[minmax(0,1.5fr)_7rem_8rem_7rem] sm:gap-4 ${selectedId === item.id ? "bg-signal-mint/10" : "hover:bg-surface-hover"}`}>
-                <div className="flex min-w-0 items-center gap-3"><div className="relative h-10 w-14 shrink-0 overflow-hidden rounded-md bg-surface-sunken">{item.type === "img" ? <Image src={item.url} alt="" fill sizes="56px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-meta font-semibold text-info-cobalt">VIDEO</span>}</div><span className="truncate text-label text-ink">{item.name}</span></div>
-                <span className="text-meta font-semibold uppercase text-ink-muted">{item.type}</span>
-                <span className="hidden font-mono text-meta text-ink-muted tnum sm:block">{(item.size / 1024 / 1024).toFixed(1)} MB</span>
-                <button type="button" onClick={(event) => { event.stopPropagation(); onDelete(item); }} className="text-right text-meta font-semibold text-critical-red hover:underline">Delete</button>
+              <div key={item.id} data-selected={selectedId === item.id ? "true" : undefined} className={`flex items-center gap-3 px-4 py-3 transition-colors ${selectedId === item.id ? "bg-signal-mint/10" : "hover:bg-surface-hover"}`}>
+                <button type="button" onClick={() => onSelect?.(item)} aria-pressed={selectedId === item.id} className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-signal-mint sm:grid-cols-[minmax(0,1.5fr)_7rem_8rem] sm:gap-4">
+                  <span className="flex min-w-0 items-center gap-3"><span className="relative h-10 w-14 shrink-0 overflow-hidden rounded-md bg-surface-sunken">{item.type === "img" ? <Image src={item.url} alt="" fill sizes="56px" className="object-cover" /> : <span className="flex h-full items-center justify-center text-meta font-semibold text-info-cobalt">VIDEO</span>}</span><span className="truncate text-label text-ink">{item.name}</span></span>
+                  <span className="text-meta font-semibold uppercase text-ink-muted sm:text-label">{item.type}</span>
+                  <span className="hidden font-mono text-meta text-ink-muted tnum sm:block">{(item.size / 1024 / 1024).toFixed(1)} MB</span>
+                </button>
+                <button type="button" onClick={() => onDelete(item)} className="shrink-0 text-meta font-semibold text-critical-red hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint">Delete</button>
               </div>
             ))}
           </div>

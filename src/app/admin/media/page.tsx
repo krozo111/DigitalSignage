@@ -11,6 +11,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StatStrip } from "@/components/ui/StatStrip";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { RefreshNotice } from "@/components/ui/RefreshNotice";
 import { MediaIcon } from "@/components/icons";
 import { PageHeader } from "@/components/PageHeader";
 import { useMediaLibrary } from "@/features/media/hooks/useMediaLibrary";
@@ -29,7 +30,7 @@ export default function MediaLibraryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   useDocumentTitle("Media — Yugo Signage");
-  const { mediaList, loading, error, uploading, progress, upload, remove, refresh } = useMediaLibrary();
+  const { mediaList, loading, error, uploading, progress, uploadLabel, upload, remove, refresh } = useMediaLibrary();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState<MediaTypeFilter>("all");
@@ -37,6 +38,7 @@ export default function MediaLibraryPage() {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const [deleteTarget, setDeleteTarget] = useState<MediaItem | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [deleteWarning, setDeleteWarning] = useState("");
   const selectedId = searchParams.get("media");
   const selectedItem = selectedId ? mediaList.find((item) => item.id === selectedId) ?? null : null;
@@ -70,8 +72,9 @@ export default function MediaLibraryPage() {
   const handleDropZoneDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) await upload(file);
+    if (uploading) return;
+    const files = Array.from(e.dataTransfer.files ?? []);
+    if (files.length) await upload(files);
   };
 
   const requestDelete = async (item: MediaItem) => {
@@ -82,9 +85,9 @@ export default function MediaLibraryPage() {
       );
       setDeleteWarning(
         usedIn.length > 0
-          ? `This file is used in ${usedIn.length} playlist(s): ${usedIn
+          ? `Deleting this file will also remove it from ${usedIn.length} ${usedIn.length === 1 ? "playlist" : "playlists"}: ${usedIn
               .map((p) => p.name)
-              .join(", ")}. Deleting it will break those playlists.`
+              .join(", ")}.`
           : ""
       );
       setDeleteTarget(item);
@@ -94,11 +97,18 @@ export default function MediaLibraryPage() {
   };
 
   const confirmDelete = async () => {
-    if (!deleteTarget) return;
-    await remove(deleteTarget.id, deleteTarget.storagePath);
-    if (selectedId === deleteTarget.id) setSelection(null);
-    setDeleteTarget(null);
-    setDeleteWarning("");
+    if (!deleteTarget || deleting) return;
+    setDeleting(true);
+    try {
+      const deleted = await remove(deleteTarget.id, deleteTarget.storagePath);
+      if (deleted) {
+        if (selectedId === deleteTarget.id) setSelection(null);
+        setDeleteTarget(null);
+        setDeleteWarning("");
+      }
+    } finally {
+      setDeleting(false);
+    }
   };
 
   return (
@@ -108,10 +118,12 @@ export default function MediaLibraryPage() {
         description="Manage the images and videos shown on your paired screens."
         actions={
           <div className="w-full md:w-auto">
-            <MediaUploader uploading={uploading} progress={progress} onUpload={upload} />
+            <MediaUploader uploading={uploading} progress={progress} uploadLabel={uploadLabel} onUpload={upload} />
           </div>
         }
       />
+
+      {error && mediaList.length > 0 && <RefreshNotice onRetry={refresh} />}
 
       <StatStrip
         items={[
@@ -174,6 +186,7 @@ export default function MediaLibraryPage() {
         confirmText="Delete"
         cancelText="Cancel"
         variant="danger"
+        busy={deleting}
         onConfirm={confirmDelete}
         onCancel={() => {
           setDeleteTarget(null);

@@ -10,6 +10,7 @@ interface ConfirmDialogProps {
   confirmText?: string;
   cancelText?: string;
   variant?: "danger" | "normal";
+  busy?: boolean;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -41,6 +42,7 @@ export function ConfirmDialog({
   confirmText = "Confirm",
   cancelText = "Cancel",
   variant = "normal",
+  busy = false,
   onConfirm,
   onCancel,
 }: ConfirmDialogProps) {
@@ -50,12 +52,12 @@ export function ConfirmDialog({
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        onCancel();
+        if (!busy) onCancel();
         return;
       }
       if (dialogRef.current) focusTrap(dialogRef.current, e);
     },
-    [onCancel]
+    [busy, onCancel]
   );
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export function ConfirmDialog({
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-background/70 backdrop-blur-sm animate-fade-in"
-      onClick={onCancel}
+      onClick={() => { if (!busy) onCancel(); }}
       role="presentation"
     >
       <div
@@ -91,12 +93,13 @@ export function ConfirmDialog({
         <h3 id={titleId} className="text-h2 text-fg mb-2">{title}</h3>
         <p className="text-fg-muted text-label mb-6">{message}</p>
         <div className="flex gap-3 justify-end">
-          <Button variant="ghost" onClick={onCancel}>
+          <Button variant="ghost" onClick={onCancel} disabled={busy}>
             {cancelText}
           </Button>
           <Button
             variant={variant === "danger" ? "danger" : "primary"}
             onClick={onConfirm}
+            loading={busy}
           >
             {confirmText}
           </Button>

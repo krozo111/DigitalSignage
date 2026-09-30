@@ -37,11 +37,13 @@ if (typeof window !== "undefined") {
         isTokenAutoRefreshEnabled: true,
       });
     } catch (err) {
-      // Multiple init or unsupported environment — safe to ignore
+      if (process.env.NODE_ENV === "production") {
+        throw new Error("Firebase App Check could not be initialized in production.", { cause: err });
+      }
       console.warn("App Check init skipped:", err);
     }
   } else if (process.env.NODE_ENV === "production") {
-    console.error("Firebase App Check is not configured in this production build.");
+    throw new Error("Firebase App Check is required in production. Configure NEXT_PUBLIC_APP_CHECK_SITE_KEY.");
   }
 }
 

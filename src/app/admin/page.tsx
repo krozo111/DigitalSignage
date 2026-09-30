@@ -7,6 +7,7 @@ import { getAllMedia, MediaItem } from "@/lib/services/mediaService";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { RefreshNotice } from "@/components/ui/RefreshNotice";
 import {
   ScreenIcon,
   PlaylistIcon,
@@ -23,18 +24,23 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 export default function AdminDashboardHome() {
   useDocumentTitle("Dashboard — Yugo Signage");
 
-  const { data: screens = [], loading: screensLoading, error: screensError, refresh: refreshScreens } = useCachedQuery<Screen[]>(
+  const { data: screensData, loading: screensLoading, error: screensError, refresh: refreshScreens } = useCachedQuery<Screen[]>(
     CacheKeys.screens,
     getAllScreens,
   );
-  const { data: playlists = [], loading: playlistsLoading, error: playlistsError, refresh: refreshPlaylists } = useCachedQuery<Playlist[]>(
+  const { data: playlistsData, loading: playlistsLoading, error: playlistsError, refresh: refreshPlaylists } = useCachedQuery<Playlist[]>(
     CacheKeys.playlists,
     getAllPlaylists,
   );
-  const { data: mediaItems = [], loading: mediaLoading, error: mediaError, refresh: refreshMedia } = useCachedQuery<MediaItem[]>(
+  const { data: mediaData, loading: mediaLoading, error: mediaError, refresh: refreshMedia } = useCachedQuery<MediaItem[]>(
     CacheKeys.media,
     getAllMedia,
   );
+
+  const screens = screensData ?? [];
+  const playlists = playlistsData ?? [];
+  const mediaItems = mediaData ?? [];
+  const hasSavedData = screensData !== undefined || playlistsData !== undefined || mediaData !== undefined;
 
   const loading = screensLoading || playlistsLoading || mediaLoading;
 
@@ -46,16 +52,20 @@ export default function AdminDashboardHome() {
   const totalSizeMB = (mediaItems.reduce((acc, m) => acc + m.size, 0) / 1024 / 1024).toFixed(0);
 
   const playlistName = (id: string | null) =>
-    id ? playlists.find((p) => p.id === id)?.name ?? "Unknown playlist" : null;
+    id
+      ? playlistsData === undefined
+        ? "Playlist data unavailable"
+        : playlists.find((p) => p.id === id)?.name ?? "Unknown playlist"
+      : null;
 
-  const networkIsEmpty = screens.length === 0;
+  const networkIsEmpty = screensData !== undefined && screens.length === 0;
 
-  if (loading) {
+  if (loading && !hasSavedData) {
     return <LoadingSkeleton variant="grid" count={3} />;
   }
 
   const firstError = screensError ?? playlistsError ?? mediaError;
-  if (firstError) {
+  if (firstError && !hasSavedData) {
     return <ErrorState onRetry={() => { refreshScreens(); refreshPlaylists(); refreshMedia(); }} />;
   }
 
@@ -74,17 +84,30 @@ export default function AdminDashboardHome() {
         }
       />
 
+      {firstError ? (
+        <RefreshNotice
+          message="Some dashboard data could not be refreshed. Saved sections may be out of date; unavailable sections are marked."
+          onRetry={() => { refreshScreens(); refreshPlaylists(); refreshMedia(); }}
+        />
+      ) : loading ? (
+        <p role="status" className="text-meta text-ink-muted">Refreshing dashboard data…</p>
+      ) : null}
+
       <StatStrip
         items={[
-          { label: "Online", value: onlineCount, detail: `${linked.length} linked screens`, tone: "success" },
-          { label: "Offline", value: offlineCount, detail: missingPlaylistCount ? `${missingPlaylistCount} without playlist` : "All screens assigned", tone: offlineCount ? "warning" : "default" },
-          { label: "Pairing", value: pending.length, detail: pending.length ? "Awaiting a claim" : "No pending screens", tone: pending.length ? "info" : "default" },
-          { label: "Media library", value: mediaItems.length, detail: `${totalSizeMB} MB stored` },
+          { label: "Online", value: screensData === undefined ? "—" : onlineCount, detail: screensData === undefined ? (screensLoading ? "Loading screens" : "Unavailable") : `${linked.length} linked screens`, tone: "success" },
+          { label: "Offline", value: screensData === undefined ? "—" : offlineCount, detail: screensData === undefined ? (screensLoading ? "Loading screens" : "Unavailable") : missingPlaylistCount ? `${missingPlaylistCount} without playlist` : "All screens assigned", tone: offlineCount ? "warning" : "default" },
+          { label: "Pairing", value: screensData === undefined ? "—" : pending.length, detail: screensData === undefined ? (screensLoading ? "Loading screens" : "Unavailable") : pending.length ? "Awaiting a claim" : "No pending screens", tone: pending.length ? "info" : "default" },
+          { label: "Media library", value: mediaData === undefined ? "—" : mediaItems.length, detail: mediaData === undefined ? (mediaLoading ? "Loading media" : "Unavailable") : `${totalSizeMB} MB stored` },
         ]}
       />
 
       {/* The screen wall: a hairline grid of live tiles, one per claimed screen. */}
-      {networkIsEmpty ? (
+      {screensData === undefined ? (
+        <section role="status" className="rounded-lg border border-surface-border bg-surface-card px-5 py-6 text-label text-ink-muted">
+          {screensLoading ? "Loading screen status…" : "Screen status is unavailable until the next successful refresh."}
+        </section>
+      ) : networkIsEmpty ? (
         <EmptyState
           icon={ScreenIcon}
           title="No screens yet"
@@ -139,7 +162,7 @@ export default function AdminDashboardHome() {
           <span className="flex items-center gap-2 text-meta text-fg-muted">
             <PlaylistIcon size={14} className="text-ink-soft" aria-hidden="true" /> Playlists
           </span>
-          <span className="font-mono text-label text-fg tnum">{playlists.length}</span>
+          <span className="font-mono text-label text-fg tnum">{playlistsData === undefined ? "—" : playlists.length}</span>
         </Link>
         <Link
           href="/admin/media"
@@ -149,8 +172,8 @@ export default function AdminDashboardHome() {
             <MediaIcon size={14} className="text-ink-soft" aria-hidden="true" /> Library
           </span>
           <span className="font-mono text-label text-fg tnum">
-            {mediaItems.length}
-            <span className="text-fg-subtle"> · {totalSizeMB} MB</span>
+            {mediaData === undefined ? "—" : mediaItems.length}
+            {mediaData !== undefined && <span className="text-fg-subtle"> · {totalSizeMB} MB</span>}
           </span>
         </Link>
       </div>

@@ -8,12 +8,14 @@ const ONLINE_THRESHOLD_MS = 5 * 60 * 1000;
 export function isScreenOnline(screen: Screen): boolean {
   if (screen.pairingCode) return false;
   if (!screen.lastSeen) return false;
-  return Date.now() - screen.lastSeen.toMillis() < ONLINE_THRESHOLD_MS;
+  const age = Date.now() - screen.lastSeen.toMillis();
+  return age >= 0 && age < ONLINE_THRESHOLD_MS;
 }
 
 export function relativeTime(lastSeen: Screen["lastSeen"]): string {
   if (!lastSeen) return "never";
   const diffMin = Math.floor((Date.now() - lastSeen.toMillis()) / 60000);
+  if (diffMin < 0) return "clock ahead";
   if (diffMin < 1) return "now";
   if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.floor(diffMin / 60);

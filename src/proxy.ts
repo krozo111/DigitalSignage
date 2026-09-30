@@ -3,13 +3,11 @@ import type { NextRequest } from "next/server";
 
 const SESSION_COOKIE_NAME = "admin-session";
 
-function buildCsp(): string {
-  // NOTE: 'unsafe-inline' on script-src is required by Next.js' runtime in dev
-  // and for inline boot scripts in prod. Nonce-based CSP is tracked separately.
-  // We still drop 'unsafe-eval' in production.
+function buildCsp(nonce: string): string {
   const scriptSrc = [
     "'self'",
-    "'unsafe-inline'",
+    `'nonce-${nonce}'`,
+    "'strict-dynamic'",
     process.env.NODE_ENV === "production" ? "" : "'unsafe-eval'",
     "https://apis.google.com",
     "https://www.gstatic.com",
@@ -23,9 +21,11 @@ function buildCsp(): string {
   return [
     "default-src 'self'",
     `script-src ${scriptSrc}`,
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: https: blob:",
-    "media-src 'self' https: blob:",
+    `style-src 'self' 'unsafe-inline' 'nonce-${nonce}'`,
+    `style-src-elem 'self' 'nonce-${nonce}'`,
+    "style-src-attr 'unsafe-inline'",
+    "img-src 'self' data: blob: https://firebasestorage.googleapis.com https://www.google.com https://www.gstatic.com",
+    "media-src 'self' blob: https://firebasestorage.googleapis.com",
     `connect-src 'self' ${process.env.NODE_ENV === "production" ? "" : "ws: wss:"} https://*.googleapis.com https://*.firebaseio.com wss://*.googleapis.com wss://*.firebaseio.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebaseappcheck.googleapis.com https://content-firebaseappcheck.googleapis.com https://www.google.com https://www.recaptcha.net https://www.gstatic.com`,
     "font-src 'self' data:",
     "frame-src 'self' https://*.firebaseapp.com https://apis.google.com https://accounts.google.com https://www.google.com https://www.recaptcha.net",
@@ -37,8 +37,12 @@ function buildCsp(): string {
 }
 
 export function proxy(request: NextRequest) {
+  const nonce = btoa(crypto.randomUUID());
+  const csp = buildCsp(nonce);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", request.nextUrl.pathname);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
@@ -49,7 +53,7 @@ export function proxy(request: NextRequest) {
     "Permissions-Policy",
     "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
   );
-  response.headers.set("Content-Security-Policy", buildCsp());
+  response.headers.set("Content-Security-Policy", csp);
   if (process.env.NODE_ENV === "production") {
     response.headers.set(
       "Strict-Transport-Security",
@@ -64,9 +68,6 @@ export function proxy(request: NextRequest) {
     // UX-only redirect — the cryptographic check happens in the admin layout.
     if (!isLoginPage && !hasSession) {
       return NextResponse.redirect(new URL("/admin/login", request.url));
-    }
-    if (isLoginPage && hasSession) {
-      return NextResponse.redirect(new URL("/admin", request.url));
     }
   }
 

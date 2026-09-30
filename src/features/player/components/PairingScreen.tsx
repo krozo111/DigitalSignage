@@ -10,7 +10,7 @@ export function PairingScreen({ code, qrDataUrl }: PairingScreenProps) {
         Pair your screen
       </h1>
       <p className="text-base md:text-lg text-fg-subtle mb-8">
-        Enter this code in your control panel
+        Open the control panel to pair this screen
       </p>
 
       <div className="flex flex-col md:flex-row items-center gap-8">
@@ -39,7 +39,7 @@ export function PairingScreen({ code, qrDataUrl }: PairingScreenProps) {
       </div>
 
       <p className="text-fg-subtle text-sm mt-6">
-        Scan the QR code or enter the code manually
+        The code refreshes every 15 minutes until this screen is paired.
       </p>
     </div>
   );

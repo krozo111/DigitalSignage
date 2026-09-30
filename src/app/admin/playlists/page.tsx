@@ -7,6 +7,7 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { StatStrip } from "@/components/ui/StatStrip";
 import { ViewTabs } from "@/components/ui/ViewTabs";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { RefreshNotice } from "@/components/ui/RefreshNotice";
 import { PageHeader } from "@/components/PageHeader";
 import { PlaylistEditor } from "@/features/playlists/components/PlaylistEditor";
 import { PlaylistList } from "@/features/playlists/components/PlaylistList";
@@ -55,6 +56,7 @@ export default function PlaylistsConstructorPage() {
 
   return (
     <div className="space-y-6">
+      {error && playlists.length > 0 && <RefreshNotice onRetry={refresh} />}
       <PageHeader
         title="Playlists"
         description={

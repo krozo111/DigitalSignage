@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { signOut } from "firebase/auth";
+import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { UnsavedChangesProvider } from "@/context/UnsavedChangesContext";
 import { auth } from "@/lib/firebase.config";
@@ -18,14 +19,18 @@ interface AdminShellProps {
 export function AdminShell({ children, serverEmail }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/session", { method: "DELETE" });
-    } catch {}
-    await signOut(auth);
-    router.push("/admin/login");
+      const response = await fetch("/api/auth/session", { method: "DELETE" });
+      if (!response.ok) throw new Error("The server could not end the admin session.");
+      await signOut(auth);
+      router.replace("/admin/login");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      toast.error("Could not safely end your session. Check your connection and try again.");
+    }
   };
 
   // Route protection is owned by the server (proxy + the admin layout's
@@ -37,6 +42,24 @@ export function AdminShell({ children, serverEmail }: AdminShellProps) {
 
   if (pathname === "/admin/login") {
     return <>{children}</>;
+  }
+
+  if (loading) {
+    return (
+      <main aria-busy="true" className="flex min-h-screen items-center justify-center bg-background text-fg-muted">
+        <p role="status" className="text-label">Restoring your secure session…</p>
+      </main>
+    );
+  }
+
+  if (!user || user.email?.toLowerCase() !== serverEmail.toLowerCase()) {
+    return (
+      <main className="flex min-h-screen flex-col items-center justify-center gap-4 bg-background px-6 text-center text-fg">
+        <h1 className="text-h2">Your admin session needs to be restored</h1>
+        <p className="max-w-md text-label text-fg-muted">Sign in again to safely reconnect this browser to the admin account.</p>
+        <button type="button" onClick={handleLogout} className="rounded-md bg-accent px-4 py-2 text-label font-semibold text-on-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-signal-mint">Return to sign in</button>
+      </main>
+    );
   }
 
   const email = user?.email ?? serverEmail;
