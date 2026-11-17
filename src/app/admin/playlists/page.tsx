@@ -56,7 +56,7 @@ export default function PlaylistsConstructorPage() {
 
   return (
     <div className="space-y-6">
-      {error && playlists.length > 0 && <RefreshNotice onRetry={refresh} />}
+      {Boolean(error) && playlists.length > 0 && <RefreshNotice onRetry={refresh} />}
       <PageHeader
         title="Playlists"
         description={

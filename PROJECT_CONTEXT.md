@@ -2,7 +2,7 @@
 
 ## 1. Vision and objectives
 
-Yugo Signage is a self-hosted digital signage framework for managing five Smart TVs centrally.
+Yugo Signage is a self-hosted digital signage framework for managing multiple Smart TVs centrally.
 
 - **No subscription:** Firebase Spark and Netlify/Vercel free tiers.
 - **Clear boundaries:** Media → Playlists → Screens.
@@ -19,6 +19,7 @@ The application is a Next.js App Router project in `mi-signage/`.
 - `src/lib/services`: Firebase data and Storage services.
 - `src/lib`: Firebase configuration, auth session verification, cache, and shared domain helpers.
 - `src/components`: shared shell and UI primitives.
+- `android-tv-player/`: Android TV pilot app that hosts the existing web player in a full-screen WebView. The TV app has its own local storage and pairing identity.
 
 ## 3. Firestore entities
 
@@ -44,6 +45,7 @@ The admin is a single Firebase Auth account with an `admin: true` custom claim a
 - Playlist metadata is cached locally for reconnects.
 - Media bytes are not cached by this app for offline playback; the player shows an offline warning when it detects a disconnected browser.
 - A service-worker/Cache API layer is still needed for actual offline asset availability. Reliable video support also needs Storage CORS and byte-range-aware caching, verified on target TVs.
+- The Android TV pilot uses the same web playback path. It currently has the same network and media-cache limitations; reliable reboot recovery still needs on-device validation.
 - The player performs a guarded daily reload to limit long-lived Smart TV browser memory growth.
 
 ## 6. Constraints

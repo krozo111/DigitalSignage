@@ -9,6 +9,7 @@ import { ScreensList } from "@/features/screens/components/ScreensList";
 import { useScreens } from "@/features/screens/hooks/useScreens";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { isScreenOnline } from "@/lib/screenStatus";
+import { LocalTvControl } from "@/features/screens/components/LocalTvControl";
 
 export default function ScreensPage() {
   useDocumentTitle("Screens — Yugo Signage");
@@ -31,7 +32,8 @@ export default function ScreensPage() {
           { label: "Playlists", value: playlists.length, detail: "Available to assign" },
         ]}
       />
-      {error && screens.length > 0 && <RefreshNotice onRetry={refresh} />}
+      <LocalTvControl />
+      {Boolean(error) && screens.length > 0 && <RefreshNotice onRetry={refresh} />}
       {error && screens.length === 0 ? (
         <ErrorState onRetry={refresh} />
       ) : (

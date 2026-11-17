@@ -123,7 +123,7 @@ export default function MediaLibraryPage() {
         }
       />
 
-      {error && mediaList.length > 0 && <RefreshNotice onRetry={refresh} />}
+      {Boolean(error) && mediaList.length > 0 && <RefreshNotice onRetry={refresh} />}
 
       <StatStrip
         items={[

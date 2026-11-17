@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Yugo Signage</string>
+    <string name="setup_title">Yugo Signage</string>
+    <string name="setup_hint">https://your-signage-site.example</string>
+    <string name="setup_description">Enter the web address of your DigitalSignage player. Use the same address currently configured in Fully Kiosk.</string>
+    <string name="save_and_open">Save and open player</string>
+    <string name="invalid_url">Enter a valid HTTPS address.</string>
+    <string name="retry">Retry</string>
+    <string name="settings">Change address</string>
+    <string name="resume">Resume player</string>
+    <string name="loading">Opening player…</string>
+    <string name="load_error">The player could not load. Check the TV connection and try again.</string>
+</resources>

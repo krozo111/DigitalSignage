@@ -1,0 +1,8 @@
+<resources>
+    <style name="Theme.YugoSignage" parent="android:style/Theme.Material.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:colorAccent">#64D9BD</item>
+        <item name="android:windowBackground">#090E1A</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+</resources>
