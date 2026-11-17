@@ -15,6 +15,7 @@ interface PlaybackViewProps {
   onVideoError: () => void;
   onFadeOutComplete: () => void;
   videoRef: React.RefObject<HTMLVideoElement | null>;
+  paused: boolean;
 }
 
 export function PlaybackView({
@@ -27,6 +28,7 @@ export function PlaybackView({
   onVideoError,
   onFadeOutComplete,
   videoRef,
+  paused,
 }: PlaybackViewProps) {
   return (
     <>
@@ -49,7 +51,7 @@ export function PlaybackView({
             <video
               ref={videoRef}
               src={currentItem.url}
-              autoPlay
+              autoPlay={!paused}
               muted
               playsInline
               onCanPlay={onVideoReady}

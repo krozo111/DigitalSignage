@@ -7,7 +7,7 @@ export interface PlaybackItem {
   duration: number; // en segundos (usado solo para imágenes y fallbacks)
 }
 
-export function useSignageLoop(items: PlaybackItem[]) {
+export function useSignageLoop(items: PlaybackItem[], paused = false) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   // Clamp on read instead of resetting state inside an effect: if the playlist
@@ -34,13 +34,13 @@ export function useSignageLoop(items: PlaybackItem[]) {
   // un re-emit del snapshot con el mismo contenido no reinicia el setTimeout, que
   // antes podía dejar una imagen "trabada" sin avanzar en conexiones inestables.
   useEffect(() => {
-    if (!currentItem || currentItem.type === "vid") return;
+    if (paused || !currentItem || currentItem.type === "vid") return;
 
     const durationMs = Math.max(currentItem.duration, 1) * 1000;
     const timer = setTimeout(goToNext, durationMs);
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentItem?.id, currentItem?.duration, currentItem?.type, goToNext]);
+  }, [safeIndex, currentItem?.id, currentItem?.duration, currentItem?.type, paused, goToNext]);
 
   // Caché de Resiliencia Offline
   useEffect(() => {

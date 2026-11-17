@@ -2,6 +2,7 @@ import { db, auth } from "../firebase.config";
 import {
   collection, updateDoc, deleteDoc, doc, getDocs, getDoc, query, where, serverTimestamp, Timestamp,
 } from "firebase/firestore";
+import { ScreenCommand, ScreenCommandAck, ScreenCommandKind } from "@/lib/screenCommands";
 
 // Helper to strictly require Auth
 const assertAuth = () => {
@@ -16,7 +17,25 @@ export interface Screen {
   playlistId: string | null;
   lastSeen: Timestamp | null;
   status: "online" | "offline";
+  controlCommand?: ScreenCommand;
+  controlAck?: ScreenCommandAck;
 }
+
+/** Sends a short-lived command over the screen's existing Firestore listener. */
+export const sendScreenCommand = async (id: string, kind: ScreenCommandKind): Promise<string> => {
+  assertAuth();
+  const commandId = crypto.randomUUID();
+  const now = Date.now();
+  await updateDoc(doc(db, "screens", id), {
+    controlCommand: {
+      id: commandId,
+      kind,
+      issuedAt: Timestamp.fromMillis(now),
+      expiresAt: Timestamp.fromMillis(now + 90_000),
+    } satisfies ScreenCommand,
+  });
+  return commandId;
+};
 
 /**
  * Claims a screen using its pairingCode, assigning it a name and optional playlist.

@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { StatusDot } from "@/components/ui/StatusDot";
 import { isScreenOnline, relativeTime } from "@/lib/screenStatus";
+import { CloudScreenControl } from "./CloudScreenControl";
 
 interface ScreenInspectorProps {
   screen: Screen;
@@ -53,6 +54,7 @@ export function ScreenInspector({ screen, playlists, onClose, onUpdate, onDelete
           <div className="flex justify-between gap-4"><dt className="text-meta text-ink-muted">Last seen</dt><dd className="font-mono text-meta text-ink tnum">{screen.pairingCode ? "—" : relativeTime(screen.lastSeen)}</dd></div>
           <div className="flex justify-between gap-4"><dt className="text-meta text-ink-muted">Pairing code</dt><dd className="font-mono text-meta text-ink tnum">{screen.pairingCode ?? "Claimed"}</dd></div>
         </dl>
+        {!screen.pairingCode && <CloudScreenControl screen={screen} />}
         <Button variant="destructive" size="sm" className="w-full" onClick={() => onDelete(screen.id)}>Delete screen</Button>
       </div>
     </aside>

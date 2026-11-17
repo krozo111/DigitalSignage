@@ -12,6 +12,8 @@ import { RegisterScreen } from "@/features/player/components/RegisterScreen";
 import { StatusOverlay } from "@/features/player/components/StatusOverlay";
 import { UpdateBadge } from "@/features/player/components/UpdateBadge";
 import { useDocumentTitle } from "@/hooks/useDocumentTitle";
+import { isScreenCommand, ScreenCommand } from "@/lib/screenCommands";
+import { sendNativeVolumeCommand } from "@/lib/nativeTvControl";
 
 function generatePairingCode() {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -29,6 +31,7 @@ export default function Home() {
   const [screenId, setScreenId] = useState<string | null>(null);
   const [pairingCode, setPairingCode] = useState<string | null>(null);
   const [mediaItems, setMediaItems] = useState<PlaybackItem[]>([]);
+  const [isPaused, setIsPaused] = useState(false);
 
   const [networkError, setNetworkError] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
@@ -128,6 +131,7 @@ export default function Home() {
   const playlistIdRef = useRef<string | null>(null);
   const unsubPlaylistRef = useRef<(() => void) | null>(null);
   const resolveIdRef = useRef(0);
+  const runCommandRef = useRef<((command: ScreenCommand, id: string) => Promise<void>) | null>(null);
 
   const subscribeToPlaylist = (playlistId: string) => {
     if (unsubPlaylistRef.current) {
@@ -211,6 +215,9 @@ export default function Home() {
 
       setNetworkError(false);
       const data = snap.data();
+      if (isScreenCommand(data.controlCommand)) {
+        void runCommandRef.current?.(data.controlCommand, snap.id);
+      }
 
       const codeExpiry = data.pairingCodeExpiresAt as Timestamp | undefined;
       if (data.pairingCode && codeExpiry && codeExpiry.toMillis() < Date.now()) {
@@ -265,6 +272,9 @@ export default function Home() {
         }
 
         const data = screenSnap.data();
+        if (isScreenCommand(data.controlCommand)) {
+          void runCommandRef.current?.(data.controlCommand, screenSnap.id);
+        }
         setPairingCode(data.pairingCode || null);
         const fbPlaylistId = data.playlistId || null;
 
@@ -313,9 +323,60 @@ export default function Home() {
     }
   };
 
-  const { currentItem, nextItem, goToNext, currentIndex } = useSignageLoop(mediaItems);
+  const { currentItem, nextItem, goToNext, currentIndex } = useSignageLoop(mediaItems, isPaused);
   const videoRef = useRef<HTMLVideoElement>(null);
   const videoLoadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  runCommandRef.current = async (command, id) => {
+    const now = Date.now();
+    if (command.expiresAt.toMillis() < now || command.issuedAt.toMillis() > now + 10_000) return;
+    const handledKey = `dsf_last_command_${id}`;
+    if (localStorage.getItem(handledKey) === command.id) return;
+    // Persist before acting: a Firestore re-emit or page reload must not double the volume step.
+    localStorage.setItem(handledKey, command.id);
+
+    let status: "applied" | "unsupported" | "failed" = "applied";
+    try {
+      switch (command.kind) {
+        case "play":
+          setIsPaused(false);
+          if (videoRef.current) await videoRef.current.play();
+          break;
+        case "pause":
+          setIsPaused(true);
+          videoRef.current?.pause();
+          break;
+        case "next":
+          if (mediaItems.length === 1 && videoRef.current) videoRef.current.currentTime = 0;
+          else goToNext();
+          break;
+        case "reload":
+          break;
+        case "volume_up":
+        case "volume_down":
+        case "mute":
+          status = await sendNativeVolumeCommand(command.id, command.kind);
+          break;
+      }
+    } catch (error) {
+      console.error("Screen command failed:", error);
+      status = "failed";
+    }
+
+    try {
+      await updateDoc(doc(db, "screens", id), {
+        controlAck: { id: command.id, status, at: serverTimestamp() },
+      });
+    } catch (error) {
+      console.warn("Could not acknowledge screen command:", error);
+    }
+    if (command.kind === "reload") window.location.reload();
+  };
+
+  useEffect(() => {
+    if (isPaused) videoRef.current?.pause();
+    else if (currentItem?.type === "vid") videoRef.current?.play().catch(() => {});
+  }, [isPaused, currentItem?.id, currentItem?.type]);
 
   const clearVideoTimer = () => {
     if (videoLoadTimerRef.current) {
@@ -325,25 +386,27 @@ export default function Home() {
   };
 
   useEffect(() => {
-    if (currentItem?.type !== "vid") {
+    if (isPaused || currentItem?.type !== "vid") {
       clearVideoTimer();
       return;
     }
+    if (videoRef.current && videoRef.current.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) return;
     videoLoadTimerRef.current = setTimeout(() => {
       console.warn("Video load timeout, skipping to next item");
       goToNext();
     }, 15000);
     return clearVideoTimer;
-  }, [currentItem?.url, currentItem?.type, goToNext]);
+  }, [currentItem?.url, currentItem?.type, isPaused, goToNext]);
 
   const handleVideoReady = () => {
     clearVideoTimer();
-    if (videoRef.current) {
+    if (!isPaused && videoRef.current) {
       videoRef.current.play().catch(() => {});
     }
   };
 
   const handleVideoEnd = () => {
+    if (isPaused) return;
     if (mediaItems.length === 1) {
       if (videoRef.current) {
         videoRef.current.currentTime = 0;
@@ -396,6 +459,7 @@ export default function Home() {
           currentIndex={currentIndex}
           totalItems={mediaItems.length}
           videoRef={videoRef}
+          paused={isPaused}
           onVideoReady={handleVideoReady}
           onVideoEnd={handleVideoEnd}
           onVideoError={() => {

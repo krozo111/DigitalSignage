@@ -48,6 +48,7 @@ service cloud.firestore {
       // Admin can update anything.
       // Unauthenticated player can:
       //   - update heartbeat (lastSeen + status)
+      //   - acknowledge the latest admin command without changing it
       //   - refresh an EXPIRED pairing code on an unclaimed screen
       // Both player paths rely on App Check enforcement in Firebase Console.
       allow update: if isAdmin()
@@ -60,6 +61,15 @@ service cloud.firestore {
               request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastSeen', 'status'])
               && request.resource.data.status in ['online', 'offline']
               && request.resource.data.lastSeen == request.time
+            )
+            || (
+              request.resource.data.diff(resource.data).affectedKeys().hasOnly(['controlAck'])
+              && resource.data.controlCommand is map
+              && request.resource.data.controlAck is map
+              && request.resource.data.controlAck.keys().hasOnly(['id', 'status', 'at'])
+              && request.resource.data.controlAck.id == resource.data.controlCommand.id
+              && request.resource.data.controlAck.status in ['applied', 'unsupported', 'failed']
+              && request.resource.data.controlAck.at == request.time
             )
             // Pairing-code refresh: only on unclaimed screens whose code already expired
             || (

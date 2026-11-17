@@ -2,6 +2,7 @@ package com.yugo.signage.tvplayer;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.media.AudioManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.Gravity;
@@ -20,6 +21,15 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+
+import androidx.webkit.WebMessageCompat;
+import androidx.webkit.WebViewCompat;
+import androidx.webkit.WebViewFeature;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Collections;
 
 /** A small Android TV host for the existing DigitalSignage web player. */
 public final class PlayerActivity extends Activity {
@@ -176,6 +186,54 @@ public final class PlayerActivity extends Activity {
             && ("/".equals(path) || "/player".equals(path));
     }
 
+    private void installNativeBridge(WebView view) {
+        if (!WebViewFeature.isFeatureSupported(WebViewFeature.WEB_MESSAGE_LISTENER)) return;
+        Uri allowed = Uri.parse(playerUrl);
+        String origin = "https://" + allowed.getAuthority();
+        WebViewCompat.addWebMessageListener(view, "YugoNative", Collections.singleton(origin),
+            (sender, message, sourceOrigin, isMainFrame, replyProxy) -> {
+                if (!isMainFrame || !"https".equalsIgnoreCase(sourceOrigin.getScheme())
+                    || !allowed.getHost().equalsIgnoreCase(sourceOrigin.getHost())
+                    || allowed.getPort() != sourceOrigin.getPort()
+                    || sender.getUrl() == null || !isPlayerPage(Uri.parse(sender.getUrl()))
+                    || message.getType() != WebMessageCompat.TYPE_STRING) return;
+
+                String id = "";
+                String status = "failed";
+                try {
+                    JSONObject command = new JSONObject(message.getData());
+                    id = command.optString("id", "");
+                    String kind = command.optString("kind", "");
+                    if (id.length() > 0 && id.length() <= 100) {
+                        AudioManager audio = (AudioManager) getSystemService(AUDIO_SERVICE);
+                        if (audio == null || audio.isVolumeFixed()) {
+                            status = "unsupported";
+                        } else {
+                            int direction;
+                            switch (kind) {
+                                case "volume_up": direction = AudioManager.ADJUST_RAISE; break;
+                                case "volume_down": direction = AudioManager.ADJUST_LOWER; break;
+                                case "mute": direction = AudioManager.ADJUST_TOGGLE_MUTE; break;
+                                default: direction = AudioManager.ADJUST_SAME; status = "unsupported";
+                            }
+                            if (!"unsupported".equals(status)) {
+                                audio.adjustStreamVolume(AudioManager.STREAM_MUSIC, direction, AudioManager.FLAG_SHOW_UI);
+                                status = "applied";
+                            }
+                        }
+                    }
+                } catch (JSONException | SecurityException exception) {
+                    status = "failed";
+                }
+
+                try {
+                    replyProxy.postMessage(new JSONObject().put("id", id).put("status", status).toString());
+                } catch (JSONException ignored) {
+                    // JSONObject serialization should not fail for these strings.
+                }
+            });
+    }
+
     private void showPlayer() {
         if (playerUrl == null) {
             showSetup(null);
@@ -196,6 +254,7 @@ public final class PlayerActivity extends Activity {
         settings.setAllowContentAccess(false);
         settings.setJavaScriptCanOpenWindowsAutomatically(false);
         settings.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW);
+        installNativeBridge(webView);
         webView.setWebChromeClient(new WebChromeClient());
         webView.setWebViewClient(new WebViewClient() {
             @Override
