@@ -16,6 +16,16 @@ const ACTIONS = new Set([
   "volume",
   "launch-player",
 ]);
+const TVS = {
+  jvc: { host: process.env.LOCAL_TV_JVC_HOST ?? "Android-3.local" },
+  foyer: { host: process.env.LOCAL_TV_FOYER_HOST ?? "10.61.0.27" },
+  lvl35: { host: process.env.LOCAL_TV_LVL35_HOST ?? "10.61.0.38" },
+} as const;
+type DeviceId = keyof typeof TVS;
+
+function deviceId(value: unknown): DeviceId | null {
+  return typeof value === "string" && Object.hasOwn(TVS, value) ? value as DeviceId : null;
+}
 
 function unavailable() {
   return NextResponse.json(
@@ -47,12 +57,13 @@ async function authorize(request: NextRequest, mutating: boolean): Promise<NextR
   return null;
 }
 
-async function runCommand(action: "status" | string, level?: number) {
+async function runCommand(device: DeviceId, action: "status" | string, level?: number) {
   const python = process.env.LOCAL_TV_PYTHON
     ?? `${process.cwd()}/.local/tv-remote-venv/bin/python`;
   const script = `${process.cwd()}/scripts/tv_remote.py`;
   const args = [script, action];
   if (action === "volume" && level !== undefined) args.push(String(level));
+  args.push("--device", device, "--host", TVS[device].host);
 
   const { stdout } = await execFileAsync(python, args, {
     cwd: process.cwd(),
@@ -73,8 +84,11 @@ export async function GET(request: NextRequest) {
   const denied = await authorize(request, false);
   if (denied) return denied;
 
+  const device = deviceId(request.nextUrl.searchParams.get("device") ?? "jvc");
+  if (!device) return NextResponse.json({ error: "Unknown TV." }, { status: 400 });
+
   try {
-    const status = await runCommand("status");
+    const status = await runCommand(device, "status");
     return NextResponse.json(status, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("[local-tv] status failed:", error instanceof Error ? error.message : "unknown error");
@@ -86,7 +100,7 @@ export async function POST(request: NextRequest) {
   const denied = await authorize(request, true);
   if (denied) return denied;
 
-  let body: { action?: unknown; level?: unknown };
+  let body: { action?: unknown; level?: unknown; device?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -96,6 +110,11 @@ export async function POST(request: NextRequest) {
   const action = body.action;
   if (typeof action !== "string" || !ACTIONS.has(action)) {
     return NextResponse.json({ error: "Unsupported TV action." }, { status: 400 });
+  }
+  const device = deviceId(body.device ?? "jvc");
+  if (!device) return NextResponse.json({ error: "Unknown TV." }, { status: 400 });
+  if (device !== "jvc" && (action === "on" || action === "off")) {
+    return NextResponse.json({ error: "Power control is not available for this TV." }, { status: 400 });
   }
 
   let level: number | undefined;
@@ -109,10 +128,10 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const status = await runCommand(action, level);
+    const status = await runCommand(device, action, level);
     return NextResponse.json(status, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
-    console.error(`[local-tv] ${action} failed:`, error instanceof Error ? error.message : "unknown error");
+    console.error(`[local-tv] ${device} ${action} failed:`, error instanceof Error ? error.message : "unknown error");
     return NextResponse.json({ error: "The TV did not confirm the requested action." }, { status: 503 });
   }
 }

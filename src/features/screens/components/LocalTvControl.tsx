@@ -13,7 +13,7 @@ interface TvStatus {
 
 type TvAction = "on" | "off" | "volume-up" | "volume-down" | "mute" | "unmute" | "launch-player";
 
-export function LocalTvControl() {
+export function LocalTvControl({ deviceId, label }: { deviceId: "jvc" | "foyer" | "lvl35"; label: string }) {
   const [status, setStatus] = useState<TvStatus | null>(null);
   const [targetVolume, setTargetVolume] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function LocalTvControl() {
 
   const readStatus = useCallback(async (signal?: AbortSignal) => {
     try {
-      const response = await fetch("/api/local-tv", { cache: "no-store", signal });
+      const response = await fetch(`/api/local-tv?device=${deviceId}`, { cache: "no-store", signal });
       if (response.status === 404) {
         setStatus(null);
         setError(null);
@@ -40,7 +40,7 @@ export function LocalTvControl() {
       setUnavailable(false);
       setError(cause instanceof Error ? cause.message : "TV status unavailable.");
     }
-  }, []);
+  }, [deviceId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -55,7 +55,7 @@ export function LocalTvControl() {
       const response = await fetch("/api/local-tv", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, ...(level === undefined ? {} : { level }) }),
+        body: JSON.stringify({ device: deviceId, action, ...(level === undefined ? {} : { level }) }),
       });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "The TV did not confirm the action.");
@@ -71,14 +71,17 @@ export function LocalTvControl() {
   };
 
   const powerLabel = status?.power === "on" ? "Online" : status?.power === "off" ? "Standby" : "Unknown";
-  const title = status?.device?.model || "JVC Android TV";
+  const title = status?.device?.model || label;
+  const canControlPower = deviceId === "jvc";
+  const headingId = `local-tv-heading-${deviceId}`;
+  const volumeId = `local-tv-volume-${deviceId}`;
 
   return (
-    <section className="overflow-hidden rounded-lg border border-surface-border bg-surface-card" aria-labelledby="local-tv-heading">
+    <section className="overflow-hidden rounded-lg border border-surface-border bg-surface-card" aria-labelledby={headingId}>
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-surface-border px-4 py-4 sm:px-5">
         <div>
           <p className="text-eyebrow text-ink-soft">On this Mac and Wi-Fi</p>
-          <h2 id="local-tv-heading" className="mt-1 text-label text-ink">Local TV control</h2>
+          <h2 id={headingId} className="mt-1 text-label text-ink">{label}</h2>
           <p className="mt-1 text-meta text-ink-muted">{title}{status?.app ? ` · ${status.app}` : ""}</p>
         </div>
         <span className={`flex items-center gap-2 rounded-full border border-surface-border px-3 py-1.5 text-meta font-semibold ${status?.power === "on" ? "text-cleared-green" : status?.power === "off" ? "text-pending-amber" : "text-ink-muted"}`}>
@@ -100,8 +103,8 @@ export function LocalTvControl() {
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
-            <Button variant="affirm" size="md" disabled={!status || busy !== null || status.power === "on"} loading={busy === "on"} onClick={() => void send("on")}>Turn on</Button>
-            <Button variant="secondary" size="md" disabled={!status || busy !== null || status.power !== "on"} loading={busy === "off"} onClick={() => void send("off")}>Standby</Button>
+            {canControlPower && <Button variant="affirm" size="md" disabled={!status || busy !== null || status.power === "on"} loading={busy === "on"} onClick={() => void send("on")}>Turn on</Button>}
+            {canControlPower && <Button variant="secondary" size="md" disabled={!status || busy !== null || status.power !== "on"} loading={busy === "off"} onClick={() => void send("off")}>Standby</Button>}
             <Button variant="secondary" size="md" disabled={!status || busy !== null || status.power !== "on"} loading={busy === "launch-player"} onClick={() => void send("launch-player")}>Open signage app</Button>
             <Button variant="secondary" size="md" disabled={!status?.volume || busy !== null} loading={busy === "volume-down"} onClick={() => void send("volume-down")}>Volume −</Button>
             <Button variant="secondary" size="md" disabled={!status?.volume || busy !== null} loading={busy === "volume-up"} onClick={() => void send("volume-up")}>Volume +</Button>
@@ -114,12 +117,12 @@ export function LocalTvControl() {
         {!unavailable && !error && status?.volume && (
           <div className="rounded-md bg-surface-sunken px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
-              <label htmlFor="local-tv-volume" className="text-meta font-semibold text-ink">Volume</label>
+              <label htmlFor={volumeId} className="text-meta font-semibold text-ink">Volume</label>
               <span className="font-mono text-meta text-ink-soft tnum">{targetVolume ?? status.volume.level} / {status.volume.max}{status.volume.muted ? " · muted" : ""}</span>
             </div>
             <div className="mt-2 flex items-center gap-3">
               <input
-                id="local-tv-volume"
+                id={volumeId}
                 type="range"
                 min={0}
                 max={status.volume.max}
@@ -137,7 +140,9 @@ export function LocalTvControl() {
       </div>
 
       <p className="border-t border-surface-border px-4 py-3 text-meta text-ink-muted sm:px-5">
-        Local access only. The Mac must stay connected to this network; the cloud admin does not directly reach the TV.
+        {canControlPower
+          ? "Local access only. The Mac must stay connected to this network; the cloud admin does not directly reach the TV."
+          : "Power controls are unavailable for this TV until wake from standby is verified. Volume and app launch require the TV to be awake and reachable from this Mac."}
       </p>
     </section>
   );

@@ -11,6 +11,12 @@ import { useDocumentTitle } from "@/hooks/useDocumentTitle";
 import { isScreenOnline } from "@/lib/screenStatus";
 import { LocalTvControl } from "@/features/screens/components/LocalTvControl";
 
+const localTvs = [
+  { id: "jvc", label: "JVC 40 Android TV" },
+  { id: "foyer", label: "foyer" },
+  { id: "lvl35", label: "lvl35" },
+] as const;
+
 export default function ScreensPage() {
   useDocumentTitle("Screens — Yugo Signage");
   const { screens, playlists, loading, error, claim, updatePlaylist, remove, purge, refresh } = useScreens();
@@ -32,7 +38,11 @@ export default function ScreensPage() {
           { label: "Playlists", value: playlists.length, detail: "Available to assign" },
         ]}
       />
-      <LocalTvControl />
+      {process.env.NODE_ENV === "development" && (
+        <div className="grid gap-4 xl:grid-cols-2">
+          {localTvs.map((tv) => <LocalTvControl key={tv.id} deviceId={tv.id} label={tv.label} />)}
+        </div>
+      )}
       {Boolean(error) && screens.length > 0 && <RefreshNotice onRetry={refresh} />}
       {error && screens.length === 0 ? (
         <ErrorState onRetry={refresh} />

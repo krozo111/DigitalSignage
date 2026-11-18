@@ -8,6 +8,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -15,7 +16,6 @@ from androidtvremote2 import AndroidTVRemote, InvalidAuth
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CERT_DIR = PROJECT_ROOT / ".local" / "tv-remote" / "jvc"
 DEFAULT_HOST = "Android-3.local"
 PLAYER_PACKAGE = "com.yugo.signage.tvplayer"
 PLAYER_LINK = "yugosignage://player"
@@ -39,12 +39,12 @@ async def wait_for(predicate, seconds: float) -> bool:
     return predicate()
 
 
-async def pair(remote: AndroidTVRemote) -> None:
-    CERT_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
-    os.chmod(CERT_DIR, 0o700)
+async def pair(remote: AndroidTVRemote, cert_dir: Path) -> None:
+    cert_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
+    os.chmod(cert_dir, 0o700)
     await remote.async_generate_cert_if_missing()
     for filename in ("cert.pem", "key.pem"):
-        os.chmod(CERT_DIR / filename, 0o600)
+        os.chmod(cert_dir / filename, 0o600)
 
     await remote.async_start_pairing()
     code = input("Code shown on the TV: ").strip().upper()
@@ -120,25 +120,29 @@ async def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("pair", "status", "on", "off", "volume-up", "volume-down", "mute", "unmute", "volume", "launch-player"))
     parser.add_argument("level", nargs="?", type=int, help="Target level for the volume action")
+    parser.add_argument("--device", default="jvc", help="Local device ID for its separate pairing certificate")
     parser.add_argument("--host", default=os.environ.get("TV_HOST", DEFAULT_HOST), help="TV hostname or IP address")
     args = parser.parse_args()
+    if not re.fullmatch(r"[a-z0-9-]{1,32}", args.device):
+        parser.error("device ID must contain lowercase letters, digits or hyphens")
+    cert_dir = PROJECT_ROOT / ".local" / "tv-remote" / args.device
     if args.action == "volume" and args.level is None:
         parser.error("volume requires a target level")
     if args.action != "volume" and args.level is not None:
         parser.error("a level is only accepted with volume")
 
-    if args.action != "pair" and not all((CERT_DIR / name).exists() for name in ("cert.pem", "key.pem")):
+    if args.action != "pair" and not all((cert_dir / name).exists() for name in ("cert.pem", "key.pem")):
         parser.error("TV is not paired on this Mac; run the pair action first")
 
     remote = AndroidTVRemote(
-        client_name="Yugo Signage Pilot",
-        certfile=str(CERT_DIR / "cert.pem"),
-        keyfile=str(CERT_DIR / "key.pem"),
+        client_name="Yugo Signage Pilot" if args.device == "jvc" else f"Yugo Signage {args.device}",
+        certfile=str(cert_dir / "cert.pem"),
+        keyfile=str(cert_dir / "key.pem"),
         host=args.host,
     )
     try:
         if args.action == "pair":
-            await pair(remote)
+            await pair(remote, cert_dir)
         else:
             try:
                 await remote.async_connect()
