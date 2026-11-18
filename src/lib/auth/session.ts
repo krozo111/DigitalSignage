@@ -3,8 +3,9 @@ import "server-only";
 import { cookies } from "next/headers";
 import { getAuth } from "firebase-admin/auth";
 import { adminApp } from "../firebase-admin.config";
+import { ADMIN_SESSION_MAX_AGE_MS, SESSION_COOKIE_NAME } from "./session-constants";
 
-export const SESSION_COOKIE_NAME = "admin-session";
+export { SESSION_COOKIE_NAME };
 
 export interface AdminSession {
   uid: string;
@@ -26,6 +27,11 @@ export async function getAdminSession(): Promise<AdminSession | null> {
   try {
     const auth = getAuth(adminApp);
     const decoded = await auth.verifySessionCookie(sessionCookie, false);
+
+    const authTimeMs = decoded.auth_time * 1000;
+    if (!Number.isFinite(authTimeMs) || Date.now() - authTimeMs >= ADMIN_SESSION_MAX_AGE_MS) {
+      return null;
+    }
 
     if (decoded.email?.toLowerCase() !== adminEmail.toLowerCase()) {
       if (process.env.NODE_ENV !== "production") {

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-const SESSION_COOKIE_NAME = "admin-session";
+import { SESSION_COOKIE_NAME } from "@/lib/auth/session-constants";
 
 function buildCsp(nonce: string): string {
   const scriptSrc = [

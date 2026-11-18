@@ -8,8 +8,12 @@ deployment flow.
 
 - **Admin** authenticates with email/password (Firebase Auth) and gets an
   `admin-session` HTTP-only cookie via `POST /api/auth/session`. The server
-  pins the account to `ADMIN_EMAIL` before issuing the cookie; the session
-  expires after eight hours.
+  pins the account to `ADMIN_EMAIL` before issuing the cookie. Firebase cookies
+  last up to 14 days and are renewed on startup, when returning to the app, and
+  at least every seven days while that device's persisted Firebase login is
+  valid. The original sign-in has a 30-day maximum age, after which that device
+  must authenticate again. Logging out clears only the current device's cookie
+  and Firebase login; it does not sign out other devices.
 - **Data access is authorized by the security rules, not by the Next.js
   server.** The browser Firestore/Storage SDKs (and the raw REST API) talk
   directly to Firebase, so the rules are the real gate. `isAdmin()` requires the
@@ -88,6 +92,10 @@ tokens can remain valid until expiry, so wait for token expiry during handover.
 
 ## Known accepted risks
 
+- **Sign-out is device-local**: clearing a cookie does not revoke a copied
+  Firebase session cookie before its natural expiry (up to 14 days). Firebase's
+  refresh-token revocation affects every session for the account, so reserve it
+  for account recovery or suspected compromise.
 - **Storage objects are publicly readable** (`allow read: if true`) so players
   can render media via `getDownloadURL()`. Objects are referenced by
   non-guessable tokens ("anyone with the link"). Writes require the admin claim.

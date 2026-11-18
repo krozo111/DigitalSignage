@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import {
+  ADMIN_SESSION_MAX_AGE_MS,
+  FIREBASE_SESSION_COOKIE_DURATION_MS,
+  SESSION_COOKIE_NAME,
+  SESSION_ID_TOKEN_MAX_AGE_MS,
+} from "@/lib/auth/session-constants";
 
 export const runtime = "nodejs";
-
-const SESSION_COOKIE_NAME = "admin-session";
-const SESSION_DURATION_MS = 60 * 60 * 8 * 1000; // 8 hours
 
 export async function POST(request: NextRequest) {
   try {
@@ -48,14 +51,27 @@ export async function POST(request: NextRequest) {
     // Since this is a hard-coded single-admin model, identity is already pinned
     // by the email match above — we don't require email_verified.
 
-    // Reject very stale idTokens (>10 min since auth_time) to limit replay window
+    // Require a fresh ID token to limit replay while allowing a persisted
+    // Firebase login to restore this device's server cookie for up to 30 days.
     const authTimeMs = decodedToken.auth_time * 1000;
-    if (Date.now() - authTimeMs > 10 * 60 * 1000) {
-      return NextResponse.json({ error: "Session expired. Sign in again." }, { status: 401 });
+    const issuedAtMs = decodedToken.iat * 1000;
+    const now = Date.now();
+    if (
+      !Number.isFinite(authTimeMs) ||
+      now - authTimeMs >= ADMIN_SESSION_MAX_AGE_MS ||
+      authTimeMs > now + 60_000 ||
+      !Number.isFinite(issuedAtMs) ||
+      now - issuedAtMs > SESSION_ID_TOKEN_MAX_AGE_MS ||
+      issuedAtMs > now + 60_000
+    ) {
+      return NextResponse.json(
+        { error: "Session expired. Please sign in again." },
+        { status: 401 }
+      );
     }
 
     const sessionCookie = await auth.createSessionCookie(idToken, {
-      expiresIn: SESSION_DURATION_MS,
+      expiresIn: FIREBASE_SESSION_COOKIE_DURATION_MS,
     });
 
     const response = NextResponse.json({ success: true });
@@ -66,7 +82,7 @@ export async function POST(request: NextRequest) {
       // into /admin (bookmarks, external links, new tabs). 'strict' withheld
       // it on cross-site-initiated GETs, which surfaced as random logouts.
       sameSite: "lax",
-      maxAge: SESSION_DURATION_MS / 1000,
+      maxAge: FIREBASE_SESSION_COOKIE_DURATION_MS / 1000,
       path: "/",
     });
 
@@ -81,23 +97,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function DELETE(request: NextRequest) {
-  const cookie = request.cookies.get(SESSION_COOKIE_NAME)?.value;
-
-  if (cookie) {
-    try {
-      const [{ adminApp }, { getAuth }] = await Promise.all([
-        import("@/lib/firebase-admin.config"),
-        import("firebase-admin/auth"),
-      ]);
-      const auth = getAuth(adminApp);
-      const decoded = await auth.verifySessionCookie(cookie);
-      await auth.revokeRefreshTokens(decoded.sub);
-    } catch {
-      // Invalid or expired cookie; there is no valid session to revoke.
-    }
-  }
-
+export async function DELETE() {
   const response = NextResponse.json({ success: true });
   response.cookies.set(SESSION_COOKIE_NAME, "", {
     httpOnly: true,

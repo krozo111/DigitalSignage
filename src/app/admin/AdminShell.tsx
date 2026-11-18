@@ -1,11 +1,9 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { signOut } from "firebase/auth";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { UnsavedChangesProvider } from "@/context/UnsavedChangesContext";
-import { auth } from "@/lib/firebase.config";
 import { MobileTabBar } from "@/components/admin/MobileTabBar";
 import { Sidebar } from "@/components/admin/Sidebar";
 import { TopBar } from "@/components/admin/TopBar";
@@ -19,13 +17,11 @@ interface AdminShellProps {
 export function AdminShell({ children, serverEmail }: AdminShellProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/auth/session", { method: "DELETE" });
-      if (!response.ok) throw new Error("The server could not end the admin session.");
-      await signOut(auth);
+      await logout();
       router.replace("/admin/login");
     } catch (error) {
       console.error("Logout failed:", error);
