@@ -56,7 +56,7 @@ Add `LOCAL_TV_CONTROL_ENABLED=true` to `.env.local`, then run `npm run dev` on t
 
 To open this local admin from another device on the same Wi-Fi, keep the development server running on the Mac and visit `http://<MAC-LAN-IP>:3000/admin` from that device. Next.js listens on all network interfaces by default. Sign in from that LAN address; the TV control requests then run on the Mac, which must remain awake and connected to the Wi-Fi. The hosted admin can also send cloud playback and volume commands to an online TV running Yugo Player 0.2 or later. Local power control still needs the Mac and the same network.
 
-If a TV's hostname changes, pass `--host <IP-address>` after the action. Run `pair --device <device> --host <IP-address>` if a TV revokes its pairing certificate. The JVC supports network standby control but cannot be restored if disconnected from mains power. Foyer dropped off the network after entering standby and did not respond to Wake-on-LAN; power controls for foyer and lvl35 are withheld until wake from standby is verified. The tool accepts only local commands and opens no network port.
+If a TV's hostname changes, pass `--host <IP-address>` after the action. Run `pair --device <device> --host <IP-address>` if a TV revokes its pairing certificate. The JVC supports network standby control but cannot be restored if disconnected from mains power. Foyer dropped off the network after entering standby and did not respond to Wake-on-LAN, so its power controls remain unavailable. Lvl35 power controls are enabled for an on-site wake test; if it also drops off the network in standby, use its physical remote. The tool accepts only local commands and opens no network port.
 
 ## Android TV player pilot
 

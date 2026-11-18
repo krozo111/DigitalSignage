@@ -113,7 +113,7 @@ export async function POST(request: NextRequest) {
   }
   const device = deviceId(body.device ?? "jvc");
   if (!device) return NextResponse.json({ error: "Unknown TV." }, { status: 400 });
-  if (device !== "jvc" && (action === "on" || action === "off")) {
+  if (device === "foyer" && (action === "on" || action === "off")) {
     return NextResponse.json({ error: "Power control is not available for this TV." }, { status: 400 });
   }
 

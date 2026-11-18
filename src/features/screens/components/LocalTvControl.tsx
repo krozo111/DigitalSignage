@@ -72,7 +72,7 @@ export function LocalTvControl({ deviceId, label }: { deviceId: "jvc" | "foyer" 
 
   const powerLabel = status?.power === "on" ? "Online" : status?.power === "off" ? "Standby" : "Unknown";
   const title = status?.device?.model || label;
-  const canControlPower = deviceId === "jvc";
+  const canControlPower = deviceId !== "foyer";
   const headingId = `local-tv-heading-${deviceId}`;
   const volumeId = `local-tv-volume-${deviceId}`;
 
@@ -99,7 +99,10 @@ export function LocalTvControl({ deviceId, label }: { deviceId: "jvc" | "foyer" 
         ) : error ? (
           <div className="space-y-2 text-meta text-pending-amber" role="alert">
             <p>{error}</p>
-            <Button variant="secondary" size="sm" onClick={() => void readStatus()}>Retry connection</Button>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="secondary" size="sm" disabled={busy !== null} onClick={() => void readStatus()}>Retry connection</Button>
+              {canControlPower && <Button variant="affirm" size="sm" disabled={busy !== null} loading={busy === "on"} onClick={() => void send("on")}>Turn on</Button>}
+            </div>
           </div>
         ) : (
           <div className="flex flex-wrap gap-2">
@@ -140,9 +143,11 @@ export function LocalTvControl({ deviceId, label }: { deviceId: "jvc" | "foyer" 
       </div>
 
       <p className="border-t border-surface-border px-4 py-3 text-meta text-ink-muted sm:px-5">
-        {canControlPower
-          ? "Local access only. The Mac must stay connected to this network; the cloud admin does not directly reach the TV."
-          : "Power controls are unavailable for this TV until wake from standby is verified. Volume and app launch require the TV to be awake and reachable from this Mac."}
+        {deviceId === "foyer"
+          ? "Power controls are unavailable for this TV until wake from standby is verified. Volume and app launch require the TV to be awake and reachable from this Mac."
+          : deviceId === "lvl35"
+            ? "Power controls are enabled for testing. If the TV drops off Wi-Fi in standby, use its physical remote to turn it back on. This Mac must stay connected to the same network."
+            : "Local access only. The Mac must stay connected to this network; the cloud admin does not directly reach the TV."}
       </p>
     </section>
   );
